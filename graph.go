@@ -6,3 +6,9 @@ type Graph map[*Node]struct{}
 
 // This is the default value for the graph. It simplifies the code.
 var graphVal = struct{}{}
+
+// Has determines whether a graph contains a specific node.
+func (g *Graph) Has(node *Node) bool {
+	_, ok := (*g)[node]
+	return ok
+}

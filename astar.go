@@ -32,10 +32,10 @@ func FindPath(inputGraph []*Node, startNode *Node, endNode *Node) ([]*Node, erro
 	if err != nil {
 		return []*Node{}, fmt.Errorf("input sanitation: %s", err.Error())
 	}
-	if _, okStart := graph[start]; !okStart {
+	if !graph.Has(start) {
 		return []*Node{}, fmt.Errorf("input sanitation: start node not in graph")
 	}
-	if _, okEnd := graph[end]; !okEnd {
+	if !graph.Has(end) {
 		return []*Node{}, fmt.Errorf("input sanitation: end node not in graph")
 	}
 
