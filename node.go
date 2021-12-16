@@ -15,7 +15,7 @@ type Node struct {
 	Cost int
 	// Private members follow.
 	// Member connections determines which nodes this one is connected to.
-	connections map[*Node]struct{}
+	connections Graph
 	// Member trackedCost tracks the accumulated minimal cost for reaching this node. If the cost is
 	// <0, it means no cost has yet been assigned.
 	trackedCost int
@@ -37,7 +37,7 @@ func NewNode(id string, cost int, numExpectedNeighbours int) (*Node, error) {
 	newNode := Node{
 		ID:          id,
 		Cost:        cost,
-		connections: make(map[*Node]struct{}, numExpectedNeighbours),
+		connections: make(Graph, numExpectedNeighbours),
 		trackedCost: -1,
 		prev:        nil,
 	}
@@ -46,7 +46,7 @@ func NewNode(id string, cost int, numExpectedNeighbours int) (*Node, error) {
 
 // AddConnection adds a connection to a node. If the connection already exists, this is a no-op.
 func (n *Node) AddConnection(neighbour *Node) {
-	n.connections[neighbour] = struct{}{}
+	n.connections[neighbour] = graphVal
 }
 
 // RemoveConnection removes a connection to a node. If the speicified node does not connect to this
