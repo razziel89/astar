@@ -35,11 +35,12 @@ func NewNode(id string, cost int, numExpectedNeighbours int) (*Node, error) {
 	if numExpectedNeighbours < 0 {
 		numExpectedNeighbours = 0
 	}
+	orgCost := -1
 	newNode := Node{
 		ID:          id,
 		Cost:        cost,
 		connections: make(Graph, numExpectedNeighbours),
-		trackedCost: -1,
+		trackedCost: orgCost,
 		prev:        nil,
 	}
 	return &newNode, nil
