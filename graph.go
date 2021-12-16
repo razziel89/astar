@@ -1,5 +1,7 @@
 package astar
 
+import "sort"
+
 // Graph is a collection of nodes. Note that there are no guarantees for the nodes to be connected.
 // Ensuring that is the user's task.
 type Graph map[*Node]struct{}
@@ -38,4 +40,23 @@ func (g *Graph) PopCheapest(heuristic Heuristic) *Node {
 	}
 	g.Remove(result)
 	return result
+}
+
+// ToString provides a string representation of the graph. The nodes are sorted according to their
+// names.
+func (g *Graph) ToString() string {
+	nodes := make([]*Node, 0, len(*g))
+	for node := range *g {
+		nodes = append(nodes, node)
+	}
+
+	lessFn := func(idx1, idx2 int) bool {
+		return nodes[idx1].ID < nodes[idx2].ID
+	}
+	sort.SliceStable(nodes, lessFn)
+	str := ""
+	for _, node := range nodes {
+		str += node.ToString() + "\n"
+	}
+	return str
 }
