@@ -2,7 +2,9 @@
 // find a description here: https://en.wikipedia.org/wiki/A*_search_algorithm
 package astar
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Function nodeListToMap converts a list of nodes to a map to simplify access. If the nodes in the
 // list are not unique, an error is returned.
@@ -22,12 +24,12 @@ func nodeListToMap(graph []*Node) (Graph, error) {
 // nodes, a start node, and an end node. It returns errors in case there are problems with the input
 // or during execution. The path is returned in the correct order. This is achieved by using the
 // normal algorithm and swapping start and end node at the beginning.
+//
 // This implementation modifies the original nodes!
-func FindPath(inputGraph []*Node, startNode *Node, endNode *Node) ([]*Node, error) {
-	// Swap nodes to return path in expected order.
-	start, end := endNode, startNode
-
-	// Variable graph is our open list containing all nodes that should be checked.
+//
+// It also takes a heuristic that estimates the cost for moving from a node to the end. In the
+// easiest case, this can be built using SimpleHeuristic.
+func FindPath(inputGraph []*Node, start *Node, end *Node, heuristic Heuristic) ([]*Node, error) {
 	graph, err := nodeListToMap(inputGraph)
 
 	// Sanity checks
@@ -41,26 +43,32 @@ func FindPath(inputGraph []*Node, startNode *Node, endNode *Node) ([]*Node, erro
 		return []*Node{}, fmt.Errorf("input sanitation: end node not in graph")
 	}
 
-	closed := Graph{}
+	// Variable open is our open list containing all nodes that should still be checked. At the
+	// beginning, this is only the start node.
+	open := Graph{start: graphVal}
 
-	err = findPath(&graph, &closed)
+	err = findPath(&open, end, heuristic)
 	if err != nil {
 		return []*Node{}, fmt.Errorf("error during path finding: %s", err.Error())
 	}
-	if len(graph) == 0 {
-		return []*Node{}, fmt.Errorf("no path found: all nodes exhaused")
-	}
 	// The only time the prev member of the end node is set is when a path has been found.
 	if end.prev == nil {
+		if len(open) == 0 {
+			return []*Node{}, fmt.Errorf("no path found: all nodes exhaused")
+		}
 		return []*Node{}, fmt.Errorf(
 			"no path found: no connection to end node found from start node",
 		)
 	}
-	// Extract a path from end to start. The result will contain the path in the order desired by
-	// the user.
-	path, err := extractPath(end, start)
+	// Extract a path from end to start.
+	invPath, err := extractPath(end, start)
 	if err != nil {
 		return []*Node{}, fmt.Errorf("error during path extraction: %s", err.Error())
+	}
+	// Reverse the path to restore the original order.
+	path := make([]*Node, 0, len(invPath))
+	for idx := len(invPath) - 1; idx >= 0; idx-- {
+		path = append(path, invPath[idx])
 	}
 
 	return path, nil
@@ -82,6 +90,37 @@ func extractPath(end, start *Node) ([]*Node, error) {
 }
 
 // Internal function that controls the pathfinding.
-func findPath(open, closed *Graph) error {
+func findPath(open *Graph, end *Node, heuristic Heuristic) error {
+	// Variable closed is our closed list. At the beginning, it is empty.
+	closed := Graph{}
+	for len(*open) != 0 && !closed.Has(end) {
+		// Find the next cheapest node from the open list. This removes it as well as return it.
+		nextCheckNode := open.PopCheapest(heuristic)
+		// Add this node to the closed list.
+		closed.Add(nextCheckNode)
+		// Process each of the neighbours.
+		for neigh := range nextCheckNode.connections {
+			// If a neighbour is already on the closed list, skip it. Don't modify it at all.
+			if closed.Has(neigh) {
+				continue
+			}
+			if open.Has(neigh) {
+				// Update the node in case we found a better path to it.
+				newCost := nextCheckNode.trackedCost + neigh.Cost
+				if newCost < neigh.trackedCost {
+					neigh.prev = nextCheckNode
+					neigh.trackedCost = newCost
+				}
+			} else {
+				if neigh.prev != nil {
+					return fmt.Errorf("node %s already has a predecessor", neigh.ToString())
+				}
+				// Add the new, as yet unknown node to the open list.
+				open.Add(neigh)
+				neigh.prev = nextCheckNode
+				neigh.trackedCost = nextCheckNode.trackedCost + neigh.Cost
+			}
+		}
+	}
 	return nil
 }
