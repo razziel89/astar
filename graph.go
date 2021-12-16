@@ -4,11 +4,16 @@ package astar
 // Ensuring that is the user's task.
 type Graph map[*Node]struct{}
 
-// This is the default value for the graph. It simplifies the code.
+// This is the default value for the graph. Specifying it once here simplifies the code.
 var graphVal = struct{}{}
 
 // Has determines whether a graph contains a specific node.
 func (g *Graph) Has(node *Node) bool {
 	_, ok := (*g)[node]
 	return ok
+}
+
+// Add adds a node to the graph. If the node already exists, this a no-op.
+func (g *Graph) Add(node *Node) {
+	(*g)[node] = graphVal
 }

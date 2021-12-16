@@ -5,7 +5,8 @@ import (
 	"strings"
 )
 
-// Node is a node for a connected graph along which to travel. Use NewNode to create one.
+// Node is a node for a connected graph along which to travel. Use NewNode to create one. It *will*
+// be modified while the algorithm is being executed.
 type Node struct {
 	// Public members follow.
 	// ID identifies the node. It is just a nice representation for the user and not used by the
