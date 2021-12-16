@@ -86,6 +86,8 @@ func extractPath(end, start *Node) ([]*Node, error) {
 		}
 		result = append(result, currNode)
 	}
+	// Don't forget the starting node.
+	result = append(result, start)
 	return result, nil
 }
 
