@@ -14,6 +14,20 @@ type intNode struct {
 	cost int
 }
 
+// Function nodeListToMap converts a list of nodes to a map to simplify access. If the nodes in the
+// list are not unique, an error is returned.
+func nodeListToMap(graph []*Node) (Graph, error) {
+	result := make(Graph, len(graph))
+	for _, node := range graph {
+		result.Add(node)
+	}
+	if len(result) != len(graph) {
+		err := fmt.Errorf("duplicate nodes in input")
+		return Graph{}, err
+	}
+	return result, nil
+}
+
 func (n *intNode) name() string {
 	return fmt.Sprintf("%d-%d", n.posX, n.posY)
 }
@@ -47,7 +61,9 @@ func TestBasicConnectionStraightLine(t *testing.T) {
 			con.AddConnection(init)
 		}
 	}
-	path, err := FindPath(nodes, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+	nodeMap, err := nodeListToMap(nodes)
+	assert.NoError(t, err)
+	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[1], nodes[2]}
 	for _, node := range path {
@@ -106,7 +122,9 @@ func TestBasicConnectionStraightLineWithEndingBranches(t *testing.T) {
 			con.AddConnection(init)
 		}
 	}
-	path, err := FindPath(nodes, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+	nodeMap, err := nodeListToMap(nodes)
+	assert.NoError(t, err)
+	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[4], nodes[8]}
 	for _, node := range path {
@@ -189,7 +207,9 @@ func TestBasicConnectionSquareEqualCost(t *testing.T) {
 			con.AddConnection(init)
 		}
 	}
-	path, err := FindPath(nodes, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+	nodeMap, err := nodeListToMap(nodes)
+	assert.NoError(t, err)
+	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[1], nodes[4], nodes[7], nodes[8]}
 	for _, node := range path {
@@ -272,7 +292,9 @@ func TestBasicConnectionSquareVaryingCost(t *testing.T) {
 			con.AddConnection(init)
 		}
 	}
-	path, err := FindPath(nodes, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+	nodeMap, err := nodeListToMap(nodes)
+	assert.NoError(t, err)
+	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[3], nodes[4], nodes[5], nodes[8]}
 	for _, node := range path {

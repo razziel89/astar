@@ -6,36 +6,24 @@ import (
 	"fmt"
 )
 
-// Function nodeListToMap converts a list of nodes to a map to simplify access. If the nodes in the
-// list are not unique, an error is returned.
-func nodeListToMap(graph []*Node) (Graph, error) {
-	result := make(Graph, len(graph))
-	for _, node := range graph {
-		result.Add(node)
-	}
-	if len(result) != len(graph) {
-		err := fmt.Errorf("duplicate nodes in input")
-		return Graph{}, err
-	}
-	return result, nil
-}
-
-// FindPath finds the path between the start and end node. It takes a graph in the form of a list of
+// FindPath finds the path between the start and end node. It takes a graph in the form of a set of
 // nodes, a start node, and an end node. It returns errors in case there are problems with the input
 // or during execution. The path is returned in the correct order. This is achieved by using the
-// normal algorithm and swapping start and end node at the beginning.
+// normal algorithm and reversing the path at the end.
 //
 // This implementation modifies the original nodes!
 //
 // It also takes a heuristic that estimates the cost for moving from a node to the end. In the
 // easiest case, this can be built using SimpleHeuristic.
-func FindPath(inputGraph []*Node, start *Node, end *Node, heuristic Heuristic) ([]*Node, error) {
-	graph, err := nodeListToMap(inputGraph)
+func FindPath(
+	inputGraph map[*Node]struct{}, start *Node, end *Node, heuristic Heuristic,
+) ([]*Node, error) {
+
+	// Convert to internally-used data structure. Both are the same, really, so we can convert
+	// with almost no cost.
+	graph := Graph(inputGraph)
 
 	// Sanity checks
-	if err != nil {
-		return []*Node{}, fmt.Errorf("input sanitation: %s", err.Error())
-	}
 	if !graph.Has(start) {
 		return []*Node{}, fmt.Errorf("input sanitation: start node not in graph")
 	}
@@ -47,7 +35,7 @@ func FindPath(inputGraph []*Node, start *Node, end *Node, heuristic Heuristic) (
 	// beginning, this is only the start node.
 	open := Graph{start: graphVal}
 
-	err = findPath(&open, end, heuristic)
+	err := findPath(&open, end, heuristic)
 	if err != nil {
 		return []*Node{}, fmt.Errorf("error during path finding: %s", err.Error())
 	}
