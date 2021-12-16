@@ -1,6 +1,9 @@
 package astar
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+)
 
 // Graph is a collection of nodes. Note that there are no guarantees for the nodes to be connected.
 // Ensuring that is the user's task.
@@ -33,9 +36,10 @@ func (g *Graph) PopCheapest(heuristic Heuristic) *Node {
 	var result *Node
 	for node := range *g {
 		estimatedCost := heuristic(node)
-		if !found || node.Cost+estimatedCost < cost {
+		if !found || node.trackedCost+estimatedCost < cost {
 			found = true
 			result = node
+			cost = node.trackedCost + estimatedCost
 		}
 	}
 	g.Remove(result)
@@ -44,7 +48,7 @@ func (g *Graph) PopCheapest(heuristic Heuristic) *Node {
 
 // ToString provides a string representation of the graph. The nodes are sorted according to their
 // names.
-func (g *Graph) ToString() string {
+func (g *Graph) ToString(heuristic Heuristic) string {
 	nodes := make([]*Node, 0, len(*g))
 	for node := range *g {
 		nodes = append(nodes, node)
@@ -55,8 +59,14 @@ func (g *Graph) ToString() string {
 	}
 	sort.SliceStable(nodes, lessFn)
 	str := ""
-	for _, node := range nodes {
-		str += node.ToString() + "\n"
+	for idx, node := range nodes {
+		str += node.ToString()
+		if heuristic != nil {
+			str += fmt.Sprintf(" -> %d", heuristic(node))
+		}
+		if idx != len(nodes)-1 {
+			str += "\n"
+		}
 	}
 	return str
 }

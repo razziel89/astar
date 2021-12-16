@@ -35,12 +35,12 @@ func NewNode(id string, cost int, numExpectedNeighbours int) (*Node, error) {
 	if numExpectedNeighbours < 0 {
 		numExpectedNeighbours = 0
 	}
-	orgCost := -1
+	startCost := 0
 	newNode := Node{
 		ID:          id,
 		Cost:        cost,
 		connections: make(Graph, numExpectedNeighbours),
-		trackedCost: orgCost,
+		trackedCost: startCost,
 		prev:        nil,
 	}
 	return &newNode, nil
@@ -64,5 +64,8 @@ func (n *Node) ToString() string {
 		conStrings = append(conStrings, con.ID)
 	}
 	conString := strings.Join(conStrings, "', '")
-	return fmt.Sprintf("{id: %s, cost: %d, con: ['%s']}", n.ID, n.Cost, conString)
+	return fmt.Sprintf(
+		"{id: %s, cost: %d, t: %d, con: ['%s']}",
+		n.ID, n.Cost, n.trackedCost, conString,
+	)
 }

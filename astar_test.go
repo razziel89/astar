@@ -51,7 +51,7 @@ func TestBasicConnectionStraightLine(t *testing.T) {
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[1], nodes[2]}
 	for _, node := range path {
-		fmt.Println(node.ToString())
+		t.Log(node.ToString())
 	}
 	for idx, node := range path {
 		assert.Equal(
@@ -110,7 +110,7 @@ func TestBasicConnectionStraightLineWithEndingBranches(t *testing.T) {
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[4], nodes[8]}
 	for _, node := range path {
-		fmt.Println(node.ToString())
+		t.Log(node.ToString())
 	}
 	for idx, node := range path {
 		assert.Equal(
@@ -193,7 +193,7 @@ func TestBasicConnectionSquareEqualCost(t *testing.T) {
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[1], nodes[4], nodes[7], nodes[8]}
 	for _, node := range path {
-		fmt.Println(node.ToString())
+		t.Log(node.ToString())
 	}
 	for idx, node := range path {
 		assert.Equal(
@@ -276,7 +276,7 @@ func TestBasicConnectionSquareVaryingCost(t *testing.T) {
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[3], nodes[4], nodes[5], nodes[8]}
 	for _, node := range path {
-		fmt.Println(node.ToString())
+		t.Log(node.ToString())
 	}
 	for idx, node := range path {
 		assert.Equal(
