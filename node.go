@@ -14,6 +14,9 @@ type Node struct {
 	ID string
 	// Cost specifies the cost of accessing this node from one connected to it.
 	Cost int
+	// Payload is some arbitrary user-defined payload that can be used with the heuristic, for
+	// example. Type checks are the user's obligation.
+	Payload interface{}
 	// Private members follow.
 	// Member connections determines which nodes this one is connected to.
 	connections Graph
@@ -28,7 +31,7 @@ type Node struct {
 // provide a non-negative cost value. If the cost is negative, an error is returned. For performance
 // reasons, specify the number of expected neighbours. A non-positive value means you are not sure
 // or don't want to optimise this part.
-func NewNode(id string, cost int, numExpectedNeighbours int) (*Node, error) {
+func NewNode(id string, cost int, numExpectedNeighbours int, payload interface{}) (*Node, error) {
 	if cost < 0 {
 		return nil, fmt.Errorf("cannot apply negative cost")
 	}
@@ -39,6 +42,7 @@ func NewNode(id string, cost int, numExpectedNeighbours int) (*Node, error) {
 	newNode := Node{
 		ID:          id,
 		Cost:        cost,
+		Payload:     payload,
 		connections: make(Graph, numExpectedNeighbours),
 		trackedCost: startCost,
 		prev:        nil,
@@ -57,7 +61,7 @@ func (n *Node) RemoveConnection(neighbour *Node) {
 	delete(n.connections, neighbour)
 }
 
-// ToString provides a nice string representation for this node.
+// ToString provides a nice string representation for this node. Not all members are used.
 func (n *Node) ToString() string {
 	conStrings := make([]string, 0, len(n.connections))
 	for con := range n.connections {

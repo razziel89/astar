@@ -43,7 +43,7 @@ func TestBasicConnectionStraightLine(t *testing.T) {
 		intNode{1, 1, 1},
 		end,
 	} {
-		newNode, err := NewNode(datum.name(), datum.cost, 0)
+		newNode, err := NewNode(datum.name(), datum.cost, 0, nil)
 		assert.NoError(t, err)
 		nodes = append(nodes, newNode)
 		estimate := (end.posX - datum.posX) + (end.posY - datum.posY)
@@ -101,7 +101,7 @@ func TestBasicConnectionStraightLineWithEndingBranches(t *testing.T) {
 		intNode{1, 2, 1},
 		end,
 	} {
-		newNode, err := NewNode(datum.name(), datum.cost, 0)
+		newNode, err := NewNode(datum.name(), datum.cost, 0, nil)
 		assert.NoError(t, err)
 		nodes = append(nodes, newNode)
 		estimate := (end.posX - datum.posX) + (end.posY - datum.posY)
@@ -161,7 +161,7 @@ func TestBasicConnectionSquareEqualCost(t *testing.T) {
 		intNode{1, 2, 1},
 		end,
 	} {
-		newNode, err := NewNode(datum.name(), datum.cost, 0)
+		newNode, err := NewNode(datum.name(), datum.cost, 0, nil)
 		assert.NoError(t, err)
 		nodes = append(nodes, newNode)
 		estimate := (end.posX - datum.posX) + (end.posY - datum.posY)
@@ -246,7 +246,7 @@ func TestBasicConnectionSquareVaryingCost(t *testing.T) {
 		intNode{posX: 1, posY: 2, cost: 10},
 		end,
 	} {
-		newNode, err := NewNode(datum.name(), datum.cost, 0)
+		newNode, err := NewNode(datum.name(), datum.cost, 0, nil)
 		assert.NoError(t, err)
 		nodes = append(nodes, newNode)
 		estimate := (end.posX - datum.posX) + (end.posY - datum.posY)
