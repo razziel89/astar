@@ -3,12 +3,17 @@ package astar
 import "fmt"
 
 // Heuristic is a function that estimates the remaining cost to reach the end for a node. It must
-// always return an integer cost value, even for nodes it does not know.
+// always return an integer cost value, even for nodes it does not know. For the algorithm to be
+// guaranteed to return the least-cost path, the heuristic must never over-estimate the actual
+// costs. In many cases, the direct, line-of-sight distance is a good heuristic.
 type Heuristic = func(*Node) int
 
-// ConstantHeuristic can be used to construct a simple heuristic function with constant costs for
-// reaching the end node. Use AddNode to add a node with estimated cost and use Heuristic to
-// retrieve the heuristic function.
+// ConstantHeuristic can be used to construct a simple heuristic function with constant (as: never
+// changing for any one node, but differing between nodes) costs for reaching the end node. Use
+// AddNode to add a node with estimated cost and use Heuristic to retrieve the heuristic function.
+// That heuristic function then simply remembers the constant costs provided for each node. Omce the
+// heuristic function has been retrieved, its data can no longer be modified. Adding a node would
+// start the creation of a new heuristic function.
 type ConstantHeuristic struct {
 	data *map[*Node]int
 }
@@ -31,8 +36,8 @@ func (s *ConstantHeuristic) AddNode(node *Node, estimate int) error {
 }
 
 // Heuristic obtains a heuristic function for the provided data. If a node cannot be found in the
-// available data, return the default value. This is suitable for use with FindPath. The heuristic
-// is cleared so that adding new nodes won't influence the function's data.
+// available data, return the default value. This is suitable for use with FindPath. The gathered
+// data is cleared so that adding new nodes won't influence the function's data.
 func (s *ConstantHeuristic) Heuristic(defaultValue int) Heuristic {
 	data := *s.data
 	heuristic := func(node *Node) int {
