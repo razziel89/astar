@@ -12,6 +12,11 @@ type Graph map[*Node]struct{}
 // This is the default value for the graph. Specifying it once here simplifies the code.
 var graphVal = struct{}{}
 
+// GraphVal is a convenience wrapper to return the default graph value.
+func GraphVal() struct{} {
+	return graphVal
+}
+
 // Has determines whether a graph contains a specific node.
 func (g *Graph) Has(node *Node) bool {
 	_, ok := (*g)[node]
