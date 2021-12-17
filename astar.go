@@ -11,17 +11,12 @@ import (
 // or during execution. The path is returned in the correct order. This is achieved by using the
 // normal algorithm and reversing the path at the end.
 //
-// This implementation modifies the original nodes!
+// This implementation modifies the original nodes during execution! In the end, the nodes are
+// reverted to their original states, which allows you to use the same input graph again.
 //
 // It also takes a heuristic that estimates the cost for moving from a node to the end. In the
-// easiest case, this can be built using SimpleHeuristic.
-func FindPath(
-	inputGraph map[*Node]struct{}, start *Node, end *Node, heuristic Heuristic,
-) ([]*Node, error) {
-
-	// Convert to internally-used data structure. Both are the same, really, so we can convert
-	// with almost no cost.
-	graph := Graph(inputGraph)
+// easiest case, this can be built using ConstantHeuristic.
+func FindPath(graph Graph, start *Node, end *Node, heuristic Heuristic) ([]*Node, error) {
 
 	// Sanity checks
 	if !graph.Has(start) {
@@ -35,54 +30,64 @@ func FindPath(
 	// beginning, this is only the start node.
 	open := Graph{start: graphVal}
 
-	err := findPath(&open, end, heuristic)
+	// The closed list is empty at the beginning.
+	closed := Graph{}
+
+	err := FindReversePath(&open, &closed, end, heuristic)
 	if err != nil {
 		return []*Node{}, fmt.Errorf("error during path finding: %s", err.Error())
 	}
 	// The only time the prev member of the end node is set is when a path has been found.
 	if end.prev == nil {
-		if len(open) == 0 {
-			return []*Node{}, fmt.Errorf("no path found: all nodes exhaused")
-		}
-		return []*Node{}, fmt.Errorf(
-			"no path found: no connection to end node found from start node",
-		)
+		err := fmt.Errorf("no path found: no connection to end node found from start node")
+		return []*Node{}, err
 	}
-	// Extract a path from end to start.
-	invPath, err := extractPath(end, start)
+	// Extract a path from end to start in the order from start to end.
+	path, err := ExtractPath(end, start, true)
 	if err != nil {
-		return []*Node{}, fmt.Errorf("error during path extraction: %s", err.Error())
+		return []*Node{}, fmt.Errorf("internal error during path extraction: %s", err.Error())
 	}
-	// Reverse the path to restore the original order.
-	path := make([]*Node, 0, len(invPath))
-	for idx := len(invPath) - 1; idx >= 0; idx-- {
-		path = append(path, invPath[idx])
+
+	// Set the prev pointer back to nil. That way, the input graph can be used again. Also set the
+	// tracked cost back to zero.
+	for node := range graph {
+		node.prev = nil
+		node.trackedCost = defaultCost
 	}
 
 	return path, nil
 }
 
-// Function extractPath follows the connection from the end to the beginning and returns it. It
-// begins at end and follows the prev member until it reaches start or until there is no prev
-// member. In the latter case, an error is returned.
-func extractPath(end, start *Node) ([]*Node, error) {
-	result := []*Node{}
+// ExtractPath follows the connection from the end to the beginning and returns it. It begins at end
+// and follows the prev member until it reaches start or until there is no prev member. In the
+// latter case, an error is returned. Specify whether you want the original path, which is in
+// reverse order, or the path from the original start to the end.
+func ExtractPath(end, start *Node, orgOrder bool) ([]*Node, error) {
+	invPath := []*Node{}
 	for currNode := end; currNode != nil && currNode != start; currNode = currNode.prev {
 		// Somehow, one node didn't have its prev member set correctly. Fail in that case.
 		if currNode.prev == nil {
 			return []*Node{}, fmt.Errorf("prev member of node %s not set", currNode.ToString())
 		}
-		result = append(result, currNode)
+		invPath = append(invPath, currNode)
 	}
 	// Don't forget the starting node.
-	result = append(result, start)
-	return result, nil
+	invPath = append(invPath, start)
+	if !orgOrder {
+		return invPath, nil
+	}
+	// Reverse the path to restore the original order if that was desired.
+	path := make([]*Node, 0, len(invPath))
+	for idx := len(invPath) - 1; idx >= 0; idx-- {
+		path = append(path, invPath[idx])
+	}
+	return path, nil
 }
 
-// Internal function that controls the pathfinding.
-func findPath(open *Graph, end *Node, heuristic Heuristic) error {
-	// Variable closed is our closed list. At the beginning, it is empty.
-	closed := Graph{}
+// FindReversePath finds a reverse path from the start node to the end node. Follow the prev member
+// of the end node to traverse the path backwards. To use this function, in the beginning, the open
+// list must contain the start node and the closed list must be empty.
+func FindReversePath(open, closed *Graph, end *Node, heuristic Heuristic) error {
 	for len(*open) != 0 && !closed.Has(end) {
 		// Find the next cheapest node from the open list. This removes it as well as return it.
 		nextCheckNode := open.PopCheapest(heuristic)
