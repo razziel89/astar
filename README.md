@@ -37,6 +37,7 @@ import (
 func main() {
 	// 100 nodes means a 10x10 grid.
 	gridSize := 10
+	endX, endY := 9, 9
 	// We disallow diagonal movements. Thus, each node has 4
 	// neighbours, 2 in x direction and 2 in y direction. This value
 	// just improves performances during allocation.
@@ -82,7 +83,7 @@ func main() {
 			// Add the line of sight distance in Manhattan metric to
 			// the end node to the heuristic. Since we disallow
 			// diagonal connections, this is realistic.
-			err = heuristic.AddNode(node, (gridSize-x)+(gridSize-y))
+			err = heuristic.AddNode(node, (endX-x)+(endY-y))
 			// Error handling. Estimates must always be positive, for
 			// example. Furthermore, you cannot overwrite a node's
 			// estimate after adding it.
