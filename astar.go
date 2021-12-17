@@ -23,6 +23,12 @@ import (
 	"fmt"
 )
 
+// These simplify tests by replacing them with mock implementations.
+var (
+	extractPath     = ExtractPath
+	findReversePath = FindReversePath
+)
+
 // FindPath finds the path between the start and end node. It takes a graph in the form of a set of
 // nodes, a start node, and an end node. It returns errors in case there are problems with the input
 // or during execution. The path is returned in the correct order. This is achieved by using the
@@ -50,7 +56,7 @@ func FindPath(graph Graph, start *Node, end *Node, heuristic Heuristic) ([]*Node
 	// The closed list is empty at the beginning.
 	closed := Graph{}
 
-	err := FindReversePath(&open, &closed, end, heuristic)
+	err := findReversePath(&open, &closed, end, heuristic)
 	if err != nil {
 		return []*Node{}, fmt.Errorf("error during path finding: %s", err.Error())
 	}
@@ -60,7 +66,7 @@ func FindPath(graph Graph, start *Node, end *Node, heuristic Heuristic) ([]*Node
 		return []*Node{}, err
 	}
 	// Extract a path from end to start in the order from start to end.
-	path, err := ExtractPath(end, start, true)
+	path, err := extractPath(end, start, true)
 	if err != nil {
 		return []*Node{}, fmt.Errorf("internal error during path extraction: %s", err.Error())
 	}
