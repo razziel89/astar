@@ -5,8 +5,13 @@ import (
 	"strings"
 )
 
+const (
+	defaultCost = 0
+)
+
 // Node is a node for a connected graph along which to travel. Use NewNode to create one. It *will*
-// be modified while the algorithm is being executed.
+// be modified while the algorithm is being executed but FindPath reverts it to its original state
+// at the end.
 type Node struct {
 	// Public members follow.
 	// ID identifies the node. It is just a nice representation for the user and not used by the
@@ -20,8 +25,8 @@ type Node struct {
 	// Private members follow.
 	// Member connections determines which nodes this one is connected to.
 	connections Graph
-	// Member trackedCost tracks the accumulated minimal cost for reaching this node. If the cost is
-	// <0, it means no cost has yet been assigned.
+	// Member trackedCost tracks the accumulated minimal cost for reaching this node. If the prev
+	// member is still nil, the algorithm assumes that no costs have been tracked yet.
 	trackedCost int
 	// Member prev tracks the previous node on the minimal cost connection.
 	prev *Node
@@ -30,7 +35,7 @@ type Node struct {
 // NewNode creates a new node. Provide an id string that describes this node for the user. Also
 // provide a non-negative cost value. If the cost is negative, an error is returned. For performance
 // reasons, specify the number of expected neighbours. A non-positive value means you are not sure
-// or don't want to optimise this part.
+// or don't want to optimise this part, which is fine, too.
 func NewNode(id string, cost int, numExpectedNeighbours int, payload interface{}) (*Node, error) {
 	if cost < 0 {
 		return nil, fmt.Errorf("cannot apply negative cost")
@@ -38,7 +43,7 @@ func NewNode(id string, cost int, numExpectedNeighbours int, payload interface{}
 	if numExpectedNeighbours < 0 {
 		numExpectedNeighbours = 0
 	}
-	startCost := 0
+	startCost := defaultCost
 	newNode := Node{
 		ID:          id,
 		Cost:        cost,
@@ -69,7 +74,7 @@ func (n *Node) ToString() string {
 	}
 	conString := strings.Join(conStrings, "', '")
 	return fmt.Sprintf(
-		"{id: %s, cost: %d, t: %d, con: ['%s']}",
-		n.ID, n.Cost, n.trackedCost, conString,
+		"{id: %s, cost: %d, con: ['%s']}",
+		n.ID, n.Cost, conString,
 	)
 }
