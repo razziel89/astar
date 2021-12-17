@@ -25,6 +25,9 @@ import (
 )
 
 func mockHeuristic(node *Node) int {
+	if node == nil {
+		return 0
+	}
 	return node.Cost + 1
 }
 
