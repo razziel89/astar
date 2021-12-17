@@ -123,7 +123,7 @@ func main() {
 
 	// Extract start and end nodes.
 	start := posToNode[[2]int{0, 0}]
-	end := posToNode[[2]int{gridSize - 1, gridSize - 1}]
+	end := posToNode[[2]int{endX, endY}]
 
 	// Find the path! As you can see, creating the data structures is
 	// the biggest headache. But this algorithm permits arbitrary
