@@ -22,7 +22,7 @@ The main function most users will want to use is `FindPath` in
 [`astar.go`](./astar.go).
 It requires a graph of nodes as input.
 Assuming you want to create a regular grid of 100 nodes, you can create one like
-this:
+this and find a path from the top left to the bottom right:
 
 ```go
 package main
