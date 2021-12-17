@@ -37,32 +37,41 @@ import (
 func main() {
 	// 100 nodes means a 10x10 grid.
 	gridSize := 10
-	// We disallow diagonal movements. Thus, each node has 4 neighbours, 2 in x direction and 2 in y
-	// direction. This value just improves performances during allocation.
+	// We disallow diagonal movements. Thus, each node has 4
+	// neighbours, 2 in x direction and 2 in y direction. This value
+	// just improves performances during allocation.
 	neighbours := 4
 	// This is the graph we will be using to find the path.
 	graph := astar.Graph{}
-	// We remember the node for each position. This makes creating connections easier.
+	// We remember the node for each position. This makes creating
+	// connections easier.
 	posToNode := map[[2]int]*astar.Node{}
-	// We also need to create a heuristic that estimates the distance to the end node. We use a
-	// simple one based on the line of sight distance.
+	// We also need to create a heuristic that estimates the distance
+	// to the end node. We use a simple one based on the line of sight
+	// distance.
 	heuristic := astar.ConstantHeuristic{}
 
 	// Create the actual nodes, connections will be created later.
 	for x := 0; x < gridSize; x++ {
 		for y := 0; y < gridSize; y++ {
 
-			// Create a name for the node, the algorithm does not use this value.
+			// Create a name for the node, the algorithm does not use
+			// this value.
 			nodeName := fmt.Sprintf("x:%d,y:%d", x, y)
-			// Note that we increase cost to larger values for x and y, but twice as much for y for
-			// this particular example.
+			// Note that we increase cost to larger values for x and
+			// y, but twice as much for y for this particular example.
 			nodeCost := x + 2*y
-			// Nodes can take an arbitrary payload. You can attach the position, for example. We
-			// don't use any payload for this example. The default for an empty interface is nil.
+			// Nodes can take an arbitrary payload. You can attach the
+			// position, for example. We don't use any payload for
+			// this example. The default for an empty interface is
+			// nil.
 			var payload interface{}
 			// Create the node.
-			node, err := astar.NewNode(nodeName, nodeCost, neighbours, payload)
-			// Error handling. Costs must always be positive, for example.
+			node, err := astar.NewNode(
+				nodeName, nodeCost, neighbours, payload,
+			)
+			// Error handling. Costs must always be positive, for
+			// example.
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -70,11 +79,13 @@ func main() {
 			posToNode[[2]int{x, y}] = node
 			// Add the node to the graph!
 			graph.Add(node)
-			// Add the line of sight distance in Manhattan metric to the end node to the heuristic.
-			// Since we disallow diagonal connections, this is realistic.
+			// Add the line of sight distance in Manhattan metric to
+			// the end node to the heuristic. Since we disallow
+			// diagonal connections, this is realistic.
 			err = heuristic.AddNode(node, (gridSize-x)+(gridSize-y))
-			// Error handling. Estimates must always be positive, for example. Furthermore, you
-			// cannot overwrite a node's estimate after adding it.
+			// Error handling. Estimates must always be positive, for
+			// example. Furthermore, you cannot overwrite a node's
+			// estimate after adding it.
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -89,15 +100,18 @@ func main() {
 			// Add all connections for this node.
 			// Extract the node first.
 			node := posToNode[[2]int{x, y}]
-			// Then, iterate over all neighbours in x and y directions. There are four different
-			// displacements here.
+			// Then, iterate over all neighbours in x and y
+			// directions. There are four different displacements
+			// here.
 			neighDisp := [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
 			for _, disp := range neighDisp {
 				neighPos := [2]int{x + disp[0], y + disp[1]}
-				// Only add connections if the neighbour actually exists!
+				// Only add connections if the neighbour actually
+				// exists!
 				if neigh, exists := posToNode[neighPos]; exists {
-					// Add pairwise connections. Adding a connection multiple times is no problem.
-					// All but the first calls are no-ops.
+					// Add pairwise connections. Adding a connection
+					// multiple times is no problem. All but the first
+					// calls are no-ops.
 					node.AddConnection(neigh)
 					neigh.AddConnection(node)
 				}
@@ -110,9 +124,12 @@ func main() {
 	start := posToNode[[2]int{0, 0}]
 	end := posToNode[[2]int{gridSize - 1, gridSize - 1}]
 
-	// Find the path! As you can see, creating the data structures is the biggest headache. But this
-	// algorithm permits arbitrary connections, even one-directional ones.
-	path, err := astar.FindPath(graph, start, end, heuristic.Heuristic(0))
+	// Find the path! As you can see, creating the data structures is
+	// the biggest headache. But this algorithm permits arbitrary
+	// connections, even one-directional ones.
+	path, err := astar.FindPath(
+		graph, start, end, heuristic.Heuristic(0),
+	)
 	// Error handling.
 	if err != nil {
 		log.Fatal(err.Error())
