@@ -52,7 +52,8 @@ func (g *Graph) PopCheapest(heuristic Heuristic) *Node {
 }
 
 // ToString provides a string representation of the graph. The nodes are sorted according to their
-// names.
+// user-defined names. If you provide a heuristic != nil, the value that heuristic provides for each
+// node is also provided at the end of a line. Provide nil to disable.
 func (g *Graph) ToString(heuristic Heuristic) string {
 	nodes := make([]*Node, 0, len(*g))
 	for node := range *g {
