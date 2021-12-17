@@ -60,8 +60,10 @@ func main() {
 			// this value.
 			nodeName := fmt.Sprintf("x:%d,y:%d", x, y)
 			// Note that we increase cost to larger values for x and
-			// y, but twice as much for y for this particular example.
-			nodeCost := x + 2*y
+			// y, but quadratically for x for this particular example.
+			// Furthermore, we make the route through the middle
+			// preferred.
+			nodeCost := (x-5)*(x-5) + 2*y
 			// Nodes can take an arbitrary payload. You can attach the
 			// position, for example. We don't use any payload for
 			// this example. The default for an empty interface is
@@ -146,28 +148,45 @@ func main() {
 The output will be this:
 
 ```
-{id: x:0,y:0, cost: 0, con: ['x:0,y:1', 'x:1,y:0']}
-{id: x:1,y:0, cost: 1, con: ['x:1,y:1', 'x:2,y:0', 'x:0,y:0']}
-{id: x:2,y:0, cost: 2, con: ['x:1,y:0', 'x:2,y:1', 'x:3,y:0']}
-{id: x:3,y:0, cost: 3, con: ['x:2,y:0', 'x:3,y:1', 'x:4,y:0']}
-{id: x:4,y:0, cost: 4, con: ['x:3,y:0', 'x:4,y:1', 'x:5,y:0']}
-{id: x:5,y:0, cost: 5, con: ['x:4,y:0', 'x:5,y:1', 'x:6,y:0']}
-{id: x:6,y:0, cost: 6, con: ['x:5,y:0', 'x:6,y:1', 'x:7,y:0']}
-{id: x:7,y:0, cost: 7, con: ['x:6,y:0', 'x:7,y:1', 'x:8,y:0']}
-{id: x:8,y:0, cost: 8, con: ['x:7,y:0', 'x:8,y:1', 'x:9,y:0']}
-{id: x:9,y:0, cost: 9, con: ['x:8,y:0', 'x:9,y:1']}
-{id: x:9,y:1, cost: 11, con: ['x:8,y:1', 'x:9,y:0', 'x:9,y:2']}
-{id: x:9,y:2, cost: 13, con: ['x:8,y:2', 'x:9,y:1', 'x:9,y:3']}
-{id: x:9,y:3, cost: 15, con: ['x:8,y:3', 'x:9,y:2', 'x:9,y:4']}
-{id: x:9,y:4, cost: 17, con: ['x:8,y:4', 'x:9,y:3', 'x:9,y:5']}
-{id: x:9,y:5, cost: 19, con: ['x:8,y:5', 'x:9,y:4', 'x:9,y:6']}
-{id: x:9,y:6, cost: 21, con: ['x:8,y:6', 'x:9,y:5', 'x:9,y:7']}
-{id: x:9,y:7, cost: 23, con: ['x:8,y:7', 'x:9,y:6', 'x:9,y:8']}
-{id: x:9,y:8, cost: 25, con: ['x:9,y:9', 'x:8,y:8', 'x:9,y:7']}
-{id: x:9,y:9, cost: 27, con: ['x:8,y:9', 'x:9,y:8']}
+{id: x:0,y:0, cost: 25, con: ['x:0,y:1', 'x:1,y:0']}
+{id: x:1,y:0, cost: 16, con: ['x:2,y:0', 'x:0,y:0', 'x:1,y:1']}
+{id: x:2,y:0, cost: 9, con: ['x:1,y:0', 'x:2,y:1', 'x:3,y:0']}
+{id: x:3,y:0, cost: 4, con: ['x:2,y:0', 'x:3,y:1', 'x:4,y:0']}
+{id: x:4,y:0, cost: 1, con: ['x:3,y:0', 'x:4,y:1', 'x:5,y:0']}
+{id: x:5,y:0, cost: 0, con: ['x:4,y:0', 'x:5,y:1', 'x:6,y:0']}
+{id: x:6,y:0, cost: 1, con: ['x:5,y:0', 'x:6,y:1', 'x:7,y:0']}
+{id: x:6,y:1, cost: 3, con: ['x:5,y:1', 'x:6,y:0', 'x:6,y:2', 'x:7,y:1']}
+{id: x:6,y:2, cost: 5, con: ['x:6,y:1', 'x:6,y:3', 'x:7,y:2', 'x:5,y:2']}
+{id: x:6,y:3, cost: 7, con: ['x:5,y:3', 'x:6,y:2', 'x:6,y:4', 'x:7,y:3']}
+{id: x:6,y:4, cost: 9, con: ['x:5,y:4', 'x:6,y:3', 'x:6,y:5', 'x:7,y:4']}
+{id: x:6,y:5, cost: 11, con: ['x:5,y:5', 'x:6,y:4', 'x:6,y:6', 'x:7,y:5']}
+{id: x:6,y:6, cost: 13, con: ['x:5,y:6', 'x:6,y:5', 'x:6,y:7', 'x:7,y:6']}
+{id: x:6,y:7, cost: 15, con: ['x:7,y:7', 'x:5,y:7', 'x:6,y:6', 'x:6,y:8']}
+{id: x:6,y:8, cost: 17, con: ['x:5,y:8', 'x:6,y:7', 'x:6,y:9', 'x:7,y:8']}
+{id: x:6,y:9, cost: 19, con: ['x:5,y:9', 'x:6,y:8', 'x:7,y:9']}
+{id: x:7,y:9, cost: 22, con: ['x:8,y:9', 'x:6,y:9', 'x:7,y:8']}
+{id: x:8,y:9, cost: 27, con: ['x:7,y:9', 'x:8,y:8', 'x:9,y:9']}
+{id: x:9,y:9, cost: 34, con: ['x:8,y:9', 'x:9,y:8']}
 ```
 
 As you can see, you get a nice string representation of the path.
+The algorithm has found the best path by first going to the middle in x
+direction, then downwards, and then to the right again once it cannot avoid it.
+Basically the path looks like this, with `.` being empty spaces and `#` being on
+the path, `S` is the start and `E` is the end:
+
+```
+......###E
+......#...
+......#...
+......#...
+......#...
+......#...
+......#...
+......#...
+......#...
+S######...
+```
 
 # Installation
 
