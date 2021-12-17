@@ -171,30 +171,32 @@ The output will be this:
 
 As you can see, you get a nice string representation of the path.
 The algorithm has found the best path by first going to the middle in x
-direction, then downwards, and then to the right again once it cannot avoid it.
+direction, then upwards (positive y direction), and then to the right again
+once it cannot avoid it.
 Basically the path looks like this, with `.` being empty spaces and `#` being on
 the path, `S` is the start and `E` is the end:
 
 ```
-......###E
-......#...
-......#...
-......#...
-......#...
-......#...
-......#...
-......#...
-......#...
-S######...
+. . . . . . # # # E
+. . . . . . # . . .
+. . . . . . # . . .
+. . . . . . # . . .
+. . . . . . # . . .
+. . . . . . # . . .
+. . . . . . # . . .
+. . . . . . # . . .
+. . . . . . # . . .
+S # # # # # # . . .
 ```
 
 # Installation
 
 Simply add `github.com/razziel89/astar` as a dependency to your project by
-running
+running:
 ```bash
 go get github.com/razziel89/astar@latest
 ```
+Then, use as in the example above!
 
 # How to contribute
 
