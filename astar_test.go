@@ -37,8 +37,7 @@ func setUpFindPath(errFindReverse, errExtract error, connect bool) func() {
 	node1, _ := NewNode("start", 0, 0, nil)
 	node2, _ := NewNode("end", 0, 0, nil)
 
-	node1.AddConnection(node2)
-	node2.AddConnection(node1)
+	node1.AddPairwiseConnection(node2)
 
 	mockPath = []*Node{node1, node2}
 
