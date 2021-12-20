@@ -21,3 +21,7 @@ coverage.out: go.* *.go
 .PHONY: coverage
 coverage: coverage.out
 	xdg-open coverage.html
+
+.PHONY: performance
+performance:
+	cd ./tests && go run .
