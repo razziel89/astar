@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package astar
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,13 +28,17 @@ var mockPath []*Node
 var mockGraph Graph
 var mockStart *Node
 var mockEnd *Node
+var errMock = fmt.Errorf("some error")
 
 // Set up test cases for find path. The two functions used by it will return the provided error
 // values.
 func setUpFindPath(errFindReverse, errExtract error, connect bool) func() {
 
-	node1, _ := NewNode("node1", 0, 0, nil)
-	node2, _ := NewNode("node2", 0, 0, nil)
+	node1, _ := NewNode("start", 0, 0, nil)
+	node2, _ := NewNode("end", 0, 0, nil)
+
+	node1.AddConnection(node2)
+	node2.AddConnection(node1)
 
 	mockPath = []*Node{node1, node2}
 
@@ -78,4 +83,114 @@ func TestFindPathSuccess(t *testing.T) {
 	assert.Equal(t, 2, len(path))
 	assert.Equal(t, path[0], mockStart)
 	assert.Equal(t, path[1], mockEnd)
+}
+
+func TestFindPathFailurePathExtraction(t *testing.T) {
+	tearDown := setUpFindPath(errMock, nil, true)
+	defer tearDown()
+
+	_, err := FindPath(mockGraph, mockStart, mockEnd, mockHeuristic)
+	assert.Error(t, err)
+}
+
+func TestFindPathFailurePathFinding(t *testing.T) {
+	tearDown := setUpFindPath(nil, errMock, true)
+	defer tearDown()
+
+	_, err := FindPath(mockGraph, mockStart, mockEnd, mockHeuristic)
+	assert.Error(t, err)
+}
+
+func TestFindPathFailureNoEnd(t *testing.T) {
+	tearDown := setUpFindPath(nil, nil, true)
+	defer tearDown()
+
+	_, err := FindPath(mockGraph, mockStart, nil, mockHeuristic)
+	assert.Error(t, err)
+}
+
+func TestFindPathFailureNoStart(t *testing.T) {
+	tearDown := setUpFindPath(nil, nil, true)
+	defer tearDown()
+
+	_, err := FindPath(mockGraph, nil, mockEnd, mockHeuristic)
+	assert.Error(t, err)
+}
+
+func TestFindPathFailureAlreadyConnection(t *testing.T) {
+	tearDown := setUpFindPath(nil, nil, true)
+	defer tearDown()
+
+	findReversePath = FindReversePath
+
+	_, err := FindPath(mockGraph, mockStart, mockEnd, mockHeuristic)
+	assert.Error(t, err)
+}
+
+func TestFindPathFailureNoConnectionToEnd(t *testing.T) {
+	tearDown := setUpFindPath(nil, nil, false)
+	defer tearDown()
+
+	mockEnd.RemoveConnection(mockStart)
+	mockStart.RemoveConnection(mockEnd)
+
+	findReversePath = FindReversePath
+
+	_, err := FindPath(mockGraph, mockStart, mockEnd, mockHeuristic)
+	assert.Error(t, err)
+}
+
+func TestExtractPathSuccessNoReverse(t *testing.T) {
+	tearDown := setUpFindPath(nil, nil, true)
+	defer tearDown()
+
+	path, err := ExtractPath(mockEnd, mockStart, false)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(path))
+	assert.Equal(t, mockEnd, path[0])
+	assert.Equal(t, mockStart, path[1])
+}
+
+func TestExtractPathSuccessReverse(t *testing.T) {
+	tearDown := setUpFindPath(nil, nil, true)
+	defer tearDown()
+
+	path, err := ExtractPath(mockEnd, mockStart, true)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(path))
+	assert.Equal(t, mockStart, path[0])
+	assert.Equal(t, mockEnd, path[1])
+}
+
+func TestExtractPathFailureNoConnection(t *testing.T) {
+	tearDown := setUpFindPath(nil, nil, false)
+	defer tearDown()
+
+	_, err := ExtractPath(mockEnd, mockStart, true)
+	assert.Error(t, err)
+}
+
+func TestFindPathBetterConnection(t *testing.T) {
+	tearDown := setUpFindPath(nil, nil, true)
+	defer tearDown()
+
+	mockMid, _ := NewNode("mid", 0, 0, nil)
+
+	mockMid.AddConnection(mockStart)
+	mockStart.AddConnection(mockMid)
+
+	mockMid.AddConnection(mockEnd)
+	mockEnd.AddConnection(mockMid)
+
+	mockMid.trackedCost = 1000
+	mockEnd.prev = nil
+
+	err := FindReversePath(
+		&Graph{mockStart: graphVal, mockMid: graphVal},
+		&Graph{}, mockEnd, mockHeuristic,
+	)
+
+	assert.NoError(t, err)
 }
