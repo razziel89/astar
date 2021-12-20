@@ -114,7 +114,9 @@ func main() {
 				if neigh, exists := posToNode[neighPos]; exists {
 					// Add pairwise connections. Adding a connection
 					// multiple times is no problem. All but the first
-					// calls are no-ops.
+					// calls are no-ops. You can also call
+                    // `node.AddPairwiseConnection(neigh)` directly,
+                    // which will add connections both ways.
 					node.AddConnection(neigh)
 					neigh.AddConnection(node)
 				}

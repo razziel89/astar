@@ -49,6 +49,21 @@ func (n *intNode) name() string {
 	return fmt.Sprintf("%d-%d", n.posX, n.posY)
 }
 
+func assertPathsEqual(t *testing.T, pathExpected, pathActual []*Node) {
+	for _, node := range pathActual {
+		t.Log(node.ToString())
+	}
+	for idx, node := range pathActual {
+		assert.Equal(
+			t, pathExpected[idx], node,
+			fmt.Sprintf(
+				"nodes not equal, expected %s found %s",
+				pathExpected[idx].ToString(), node.ToString(),
+			),
+		)
+	}
+}
+
 func TestBasicConnectionStraightLine(t *testing.T) {
 	nodes := []*Node{}
 	start := intNode{0, 0, 1}
@@ -73,9 +88,7 @@ func TestBasicConnectionStraightLine(t *testing.T) {
 	} {
 		init := cons[0]
 		for _, con := range cons[1:] {
-			// Add pairwise connections.
-			init.AddConnection(con)
-			con.AddConnection(init)
+			init.AddPairwiseConnection(con)
 		}
 	}
 	nodeMap, err := nodeListToMap(nodes)
@@ -83,18 +96,7 @@ func TestBasicConnectionStraightLine(t *testing.T) {
 	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[1], nodes[2]}
-	for _, node := range path {
-		t.Log(node.ToString())
-	}
-	for idx, node := range path {
-		assert.Equal(
-			t, expectedPath[idx], node,
-			fmt.Sprintf(
-				"nodes not equal, expected %s found %s",
-				expectedPath[idx].ToString(), node.ToString(),
-			),
-		)
-	}
+	assertPathsEqual(t, expectedPath, path)
 }
 
 func TestBasicConnectionStraightLineWithEndingBranches(t *testing.T) {
@@ -134,9 +136,7 @@ func TestBasicConnectionStraightLineWithEndingBranches(t *testing.T) {
 	} {
 		init := cons[0]
 		for _, con := range cons[1:] {
-			// Add pairwise connections.
-			init.AddConnection(con)
-			con.AddConnection(init)
+			init.AddPairwiseConnection(con)
 		}
 	}
 	nodeMap, err := nodeListToMap(nodes)
@@ -144,18 +144,7 @@ func TestBasicConnectionStraightLineWithEndingBranches(t *testing.T) {
 	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[4], nodes[8]}
-	for _, node := range path {
-		t.Log(node.ToString())
-	}
-	for idx, node := range path {
-		assert.Equal(
-			t, expectedPath[idx], node,
-			fmt.Sprintf(
-				"nodes not equal, expected %s found %s",
-				expectedPath[idx].ToString(), node.ToString(),
-			),
-		)
-	}
+	assertPathsEqual(t, expectedPath, path)
 }
 
 //nolint:funlen
@@ -219,9 +208,7 @@ func TestBasicConnectionSquareEqualCost(t *testing.T) {
 	} {
 		init := cons[0]
 		for _, con := range cons[1:] {
-			// Add pairwise connections.
-			init.AddConnection(con)
-			con.AddConnection(init)
+			init.AddPairwiseConnection(con)
 		}
 	}
 	nodeMap, err := nodeListToMap(nodes)
@@ -229,18 +216,7 @@ func TestBasicConnectionSquareEqualCost(t *testing.T) {
 	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[1], nodes[4], nodes[7], nodes[8]}
-	for _, node := range path {
-		t.Log(node.ToString())
-	}
-	for idx, node := range path {
-		assert.Equal(
-			t, expectedPath[idx], node,
-			fmt.Sprintf(
-				"nodes not equal, expected %s found %s",
-				expectedPath[idx].ToString(), node.ToString(),
-			),
-		)
-	}
+	assertPathsEqual(t, expectedPath, path)
 }
 
 //nolint:funlen
@@ -304,9 +280,7 @@ func TestBasicConnectionSquareVaryingCost(t *testing.T) {
 	} {
 		init := cons[0]
 		for _, con := range cons[1:] {
-			// Add pairwise connections.
-			init.AddConnection(con)
-			con.AddConnection(init)
+			init.AddPairwiseConnection(con)
 		}
 	}
 	nodeMap, err := nodeListToMap(nodes)
@@ -314,16 +288,88 @@ func TestBasicConnectionSquareVaryingCost(t *testing.T) {
 	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[3], nodes[4], nodes[5], nodes[8]}
-	for _, node := range path {
-		t.Log(node.ToString())
+	assertPathsEqual(t, expectedPath, path)
+}
+
+//nolint:funlen
+func TestOneWayConnection(t *testing.T) {
+	nodes := []*Node{}
+	start := intNode{0, 0, 1}
+	end := intNode{2, 2, 1}
+	heuristic := ConstantHeuristic{}
+	for _, datum := range []intNode{
+		// First row.
+		start,
+		intNode{1, 0, 1},
+		intNode{2, 0, 1},
+		// Second row.
+		intNode{0, 1, 1},
+		intNode{1, 1, 1},
+		intNode{2, 1, 1},
+		// Third row.
+		intNode{0, 2, 1},
+		intNode{1, 2, 1},
+		end,
+	} {
+		newNode, err := NewNode(datum.name(), datum.cost, 0, nil)
+		assert.NoError(t, err)
+		nodes = append(nodes, newNode)
+		estimate := (end.posX - datum.posX) + (end.posY - datum.posY)
+		err = heuristic.AddNode(newNode, estimate)
+		assert.NoError(t, err)
 	}
-	for idx, node := range path {
-		assert.Equal(
-			t, expectedPath[idx], node,
-			fmt.Sprintf(
-				"nodes not equal, expected %s found %s",
-				expectedPath[idx].ToString(), node.ToString(),
-			),
-		)
+	// Add connections. Some connections are added only one way. This way, we can force the
+	// algorithm to take a specific path. Connections marked with | or -- exist both ways.
+	// Connections marked with -> or <- or ^ go only the way that is shown (the latter symbol means
+	// "up"). The situation then looks like this:
+	//
+	//     #  #<-E
+	//        |  ^
+	//     #->#->#  <- This node is made very expensive below.
+	//     |
+	//     S  #  #
+	//
+	// The only possible connection then looks like this, even though the middle right node is very
+	// expensive:
+	//
+	//     #  #  E
+	//           |
+	//     #--#--#
+	//     |
+	//     S  #  #
+	//
+	// Make one node expensive:
+	nodes[5].Cost = 1000
+	for _, cons := range [][]*Node{
+		// First row.
+		[]*Node{nodes[0], nodes[3]},
+		// Second row.
+		[]*Node{nodes[3], nodes[0], nodes[4]},
+		[]*Node{nodes[4], nodes[5], nodes[7]},
+		[]*Node{nodes[5], nodes[8]},
+		// Third row.
+		[]*Node{nodes[7], nodes[4]},
+		[]*Node{nodes[8], nodes[7]},
+	} {
+		init := cons[0]
+		for _, con := range cons[1:] {
+			// Add only those connections that were specified.
+			init.AddConnection(con)
+		}
 	}
+	nodeMap, err := nodeListToMap(nodes)
+	assert.NoError(t, err)
+	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+	assert.NoError(t, err)
+	expectedPath := []*Node{nodes[0], nodes[3], nodes[4], nodes[5], nodes[8]}
+	assertPathsEqual(t, expectedPath, path)
+
+	// As soon as the one additional connection is added, the better path is found. This ensures
+	// that the connection from nodes[8] to nodes[7] added above is not taken, since it is only one
+	// way.
+	nodes[7].AddConnection(nodes[8])
+	path, err = FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+	assert.NoError(t, err)
+	expectedPath = []*Node{nodes[0], nodes[3], nodes[4], nodes[7], nodes[8]}
+	assertPathsEqual(t, expectedPath, path)
 }

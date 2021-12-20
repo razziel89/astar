@@ -77,6 +77,13 @@ func (n *Node) AddConnection(neighbour *Node) {
 	n.connections[neighbour] = graphVal
 }
 
+// AddPairwiseConnection adds a connection to a node and from that node back to the receiver.. If
+// the connection already exists, this is a no-op.
+func (n *Node) AddPairwiseConnection(neighbour *Node) {
+	n.AddConnection(neighbour)
+	neighbour.AddConnection(n)
+}
+
 // RemoveConnection removes a connection to a node. If the speicified node does not connect to this
 // node, this is a no-op.
 func (n *Node) RemoveConnection(neighbour *Node) {
