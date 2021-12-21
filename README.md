@@ -133,7 +133,7 @@ func main() {
 	// the biggest headache. But this algorithm permits arbitrary
 	// connections, even one-directional ones.
 	path, err := astar.FindPath(
-		graph, start, end, heuristic.Heuristic(0),
+		&graph, start, end, heuristic.Heuristic(0),
 	)
 	// Error handling.
 	if err != nil {
