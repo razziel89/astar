@@ -99,10 +99,7 @@ func (h *Heap) Remove(findNode *Node) {
 // PopCheapest retrieves one of the cheapest nodes and removes it. This will return nil if the heap
 // is empty.
 func (h *Heap) PopCheapest() *Node {
-	if len(*h) > 0 {
-		return h.Pop().(*Node)
-	}
-	return nil
+	return h.Pop().(*Node)
 }
 
 // ToString provides a string representation of the heap. The nodes are sorted according to their
