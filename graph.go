@@ -22,6 +22,27 @@ import (
 	"sort"
 )
 
+// GraphOps is an interface needed for a graph to be usable with the path finding functions in this
+// module. See the method documentation of the actual Graph type for what the individual methods do
+// in detail.
+type GraphOps interface {
+	// Len specifies how many elements there are in the graph.
+	Len() int
+	// Has checks whether a node is in the graph.
+	Has(node *Node) bool
+	// Add adds a node to a graph without an estimate.
+	Add(node *Node)
+	// Push adds a node to a graph with an estimate.
+	Push(node *Node, estimate int)
+	// Remove removes a specific node from a graph.
+	Remove(node *Node)
+	// PopCheapest retrieves and removes the cheapest node from the graph. Cost is equal to the
+	// node's cost added to its estimate.
+	PopCheapest() *Node
+	// Apply applies a function to all nodes in the graph. That function may error out.
+	Apply(func(*Node) error) error
+}
+
 // Graph is a collection of nodes. Note that there are no guarantees for the nodes to be connected.
 // Ensuring that is the user's task. Each nodes is assigned to its estimate. That means a node's
 // estimate will never be able to change once added.
@@ -33,6 +54,11 @@ var graphVal = 0
 // GraphVal is a convenience wrapper to return the default graph value.
 func GraphVal() int {
 	return graphVal
+}
+
+// Len determines the number of elements.
+func (g *Graph) Len() int {
+	return len(*g)
 }
 
 // Has determines whether a graph contains a specific node.
@@ -71,6 +97,17 @@ func (g *Graph) PopCheapest() *Node {
 	}
 	g.Remove(result)
 	return result
+}
+
+// Apply apples a function to all nodes in the graph.
+func (g *Graph) Apply(fn func(*Node) error) error {
+	for node := range *g {
+		err := fn(node)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ToString provides a string representation of the graph. The nodes are sorted according to their

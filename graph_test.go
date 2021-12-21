@@ -59,6 +59,53 @@ func TestGraphHas(t *testing.T) {
 	assert.True(t, graph.Has(node))
 }
 
+func TestGraphApplySuccess(t *testing.T) {
+	node, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+
+	graph := Graph{}
+	graph.Add(node)
+
+	mockApplyFn := func(node *Node) error {
+		node.prev = node
+		return nil
+	}
+
+	assert.Nil(t, node.prev)
+	err = graph.Apply(mockApplyFn)
+	assert.NoError(t, err)
+	assert.Equal(t, node, node.prev)
+}
+
+func TestGraphApplyFail(t *testing.T) {
+	node1, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+	node2, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+
+	graph := Graph{}
+	graph.Add(node1)
+	graph.Add(node2)
+
+	mockApplyFn := func(node *Node) error {
+		node.prev = node
+		return errMock
+	}
+
+	assert.Nil(t, node1.prev)
+	assert.Nil(t, node2.prev)
+	err = graph.Apply(mockApplyFn)
+	assert.Error(t, err)
+	// Ensure the apply fn has not been applied to all nodes but only until an error happened.
+	nilCount := 0
+	for node := range graph {
+		if node.prev == nil {
+			nilCount++
+		}
+	}
+	assert.Equal(t, 1, nilCount)
+}
+
 func TestGraphPopCheapest(t *testing.T) {
 	graph := Graph{}
 	var expectedCheapest *Node

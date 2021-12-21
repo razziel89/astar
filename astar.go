@@ -27,7 +27,14 @@ import (
 var (
 	extractPath     = ExtractPath
 	findReversePath = FindReversePath
+	resetFn         = nodeResetFn
 )
+
+func nodeResetFn(node *Node) error {
+	node.prev = nil
+	node.trackedCost = defaultCost
+	return nil
+}
 
 // FindPath finds the path between the start and end node. It takes a graph in the form of a set of
 // nodes, a start node, and an end node. It returns errors in case there are problems with the input
@@ -39,7 +46,7 @@ var (
 //
 // It also takes a heuristic that estimates the cost for moving from a node to the end. In the
 // easiest case, this can be built using ConstantHeuristic.
-func FindPath(graph Graph, start *Node, end *Node, heuristic Heuristic) ([]*Node, error) {
+func FindPath(graph GraphOps, start *Node, end *Node, heuristic Heuristic) ([]*Node, error) {
 
 	// Sanity checks
 	if !graph.Has(start) {
@@ -73,9 +80,9 @@ func FindPath(graph Graph, start *Node, end *Node, heuristic Heuristic) ([]*Node
 
 	// Set the prev pointer back to nil. That way, the input graph can be used again. Also set the
 	// tracked cost back to zero.
-	for node := range graph {
-		node.prev = nil
-		node.trackedCost = defaultCost
+	err = graph.Apply(resetFn)
+	if err != nil {
+		return []*Node{}, fmt.Errorf("internal error during node reset: %s", err.Error())
 	}
 
 	return path, nil
@@ -110,8 +117,8 @@ func ExtractPath(end, start *Node, orgOrder bool) ([]*Node, error) {
 // FindReversePath finds a reverse path from the start node to the end node. Follow the prev member
 // of the end node to traverse the path backwards. To use this function, in the beginning, the open
 // list must contain the start node and the closed list must be empty.
-func FindReversePath(open, closed *Graph, end *Node, heuristic Heuristic) error {
-	for len(*open) != 0 && !closed.Has(end) {
+func FindReversePath(open, closed GraphOps, end *Node, heuristic Heuristic) error {
+	for open.Len() != 0 && !closed.Has(end) {
 		// Find the next cheapest node from the open list. This removes it as well as return it.
 		nextCheckNode := open.PopCheapest()
 		// Add this node to the closed list.
