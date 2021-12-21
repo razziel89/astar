@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 default: lint
 
 build: astar
@@ -12,7 +14,9 @@ lint:
 test: .test.log
 
 .test.log: go.* *.go
-	go test ./... | tee .test.log
+	set -o pipefail && \
+		go test ./... | tee .test.log || \
+		rm .test.log
 
 coverage.out: go.* *.go
 	go test -coverprofile=coverage.out 
@@ -25,3 +29,10 @@ coverage: coverage.out
 .PHONY: performance
 performance:
 	cd ./tests && go run .
+
+bench: .bench.log
+
+.bench.log: go.* *.go
+	set -o pipefail && \
+		go test -bench=. ./... | tee .bench.log || \
+		rm .bench.log
