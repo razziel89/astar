@@ -43,7 +43,7 @@ func main() {
 	// just improves performances during allocation.
 	neighbours := 4
 	// This is the graph we will be using to find the path.
-	graph := astar.Graph{}
+	graph := astar.NewGraph()
 	// We remember the node for each position. This makes creating
 	// connections easier.
 	posToNode := map[[2]int]*astar.Node{}
@@ -133,7 +133,7 @@ func main() {
 	// the biggest headache. But this algorithm permits arbitrary
 	// connections, even one-directional ones.
 	path, err := astar.FindPath(
-		&graph, start, end, heuristic.Heuristic(0),
+		graph, start, end, heuristic.Heuristic(0),
 	)
 	// Error handling.
 	if err != nil {

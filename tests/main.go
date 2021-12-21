@@ -71,7 +71,7 @@ func main() {
 	log.Println("connected nodes")
 
 	// Convert to graph.
-	graph := astar.Graph{}
+	graph := astar.NewGraph()
 	for _, node := range nodes {
 		graph.Add(node)
 	}
@@ -80,7 +80,7 @@ func main() {
 
 	startTime := time.Now()
 	// Run the test.
-	path, err := astar.FindPath(&graph, start, end, heuristic.Heuristic(0))
+	path, err := astar.FindPath(graph, start, end, heuristic.Heuristic(0))
 	if err != nil {
 		log.Fatal(err.Error())
 	}

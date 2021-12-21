@@ -45,8 +45,14 @@ type GraphOps interface {
 
 // Graph is a collection of nodes. Note that there are no guarantees for the nodes to be connected.
 // Ensuring that is the user's task. Each nodes is assigned to its estimate. That means a node's
-// estimate will never be able to change once added.
+// estimate will never be able to change once added. Get a graph via NewGraph.
 type Graph map[*Node]int
+
+// NewGraph obtains a new graph. No arguments are required. This function returns a normal graph
+// based on a Go map. That structure has sub-optimal performance but works.
+func NewGraph() GraphOps {
+	return &Graph{}
+}
 
 // This is the default value for the graph. Specifying it once here simplifies the code.
 var graphVal = 0
