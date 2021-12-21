@@ -56,11 +56,7 @@ func (h *Heap) Pop() interface{} {
 	}
 	length := len(*h)
 	last := (*h)[length-1]
-	if len(*h) > 1 {
-		*h = (*h)[0 : length-2]
-	} else {
-		*h = Heap{}
-	}
+	*h = (*h)[0 : length-1]
 	return last
 }
 
@@ -99,7 +95,10 @@ func (h *Heap) Remove(findNode *Node) {
 // PopCheapest retrieves one of the cheapest nodes and removes it. This will return nil if the heap
 // is empty.
 func (h *Heap) PopCheapest() *Node {
-	return h.Pop().(*Node)
+	if val, ok := h.Pop().(*Node); ok {
+		return val
+	}
+	return nil
 }
 
 // ToString provides a string representation of the heap. The nodes are sorted according to their

@@ -17,7 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package astar
 
-import "testing"
+import (
+	goheap "container/heap"
+	"testing"
+)
 
 const (
 	tenK     = 1000
@@ -46,20 +49,22 @@ func BenchmarkGraphAdd100KNodes(b *testing.B) {
 
 func BenchmarkHeapPush10KNodes(b *testing.B) {
 	heap := Heap{}
+	goheap.Init(&heap)
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < tenK; j++ {
 			node, _ := NewNode("", tenK-j, 0, nil)
-			heap.Push(node)
+			goheap.Push(&heap, node)
 		}
 	}
 }
 
 func BenchmarkHeapPush100KNodes(b *testing.B) {
 	heap := Heap{}
+	goheap.Init(&heap)
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < hundredK; j++ {
 			node, _ := NewNode("", hundredK-j, 0, nil)
-			heap.Push(node)
+			goheap.Push(&heap, node)
 		}
 	}
 }
@@ -102,52 +107,56 @@ func BenchmarkGraphPopCheapest100KNodes(b *testing.B) {
 
 func BenchmarkHeapPop10KNodes(b *testing.B) {
 	heap := Heap{}
+	goheap.Init(&heap)
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < tenK; j++ {
 			node, _ := NewNode("", 0, 0, nil)
-			heap.Push(node)
+			goheap.Push(&heap, node)
 		}
 		for j := 0; j < tenK; j++ {
-			_ = heap.Pop()
+			_ = goheap.Pop(&heap)
 		}
 	}
 }
 
 func BenchmarkHeapPop100KNodes(b *testing.B) {
 	heap := Heap{}
+	goheap.Init(&heap)
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < hundredK; j++ {
 			node, _ := NewNode("", 0, 0, nil)
-			heap.Push(node)
+			goheap.Push(&heap, node)
 		}
 		for j := 0; j < hundredK; j++ {
-			_ = heap.Pop()
+			_ = goheap.Pop(&heap)
 		}
 	}
 }
 
 func BenchmarkHeapPopCheapest10KNodes(b *testing.B) {
 	heap := Heap{}
+	goheap.Init(&heap)
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < tenK; j++ {
 			node, _ := NewNode("", 0, 0, nil)
-			heap.Push(node)
+			goheap.Push(&heap, node)
 		}
 		for j := 0; j < tenK; j++ {
-			_ = heap.PopCheapest()
+			_ = goheap.Pop(&heap)
 		}
 	}
 }
 
 func BenchmarkHeapPopCheapest100KNodes(b *testing.B) {
 	heap := Heap{}
+	goheap.Init(&heap)
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < hundredK; j++ {
 			node, _ := NewNode("", 0, 0, nil)
-			heap.Push(node)
+			goheap.Push(&heap, node)
 		}
 		for j := 0; j < hundredK; j++ {
-			_ = heap.PopCheapest()
+			_ = goheap.Pop(&heap)
 		}
 	}
 }

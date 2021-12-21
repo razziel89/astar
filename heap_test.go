@@ -35,12 +35,47 @@ func TestHeapLenPush(t *testing.T) {
 	assert.Equal(t, 3, heap.Len())
 }
 
-func TestHeapPop(t *testing.T) {
+func TestHeapAddRemove(t *testing.T) {
+	heap := Heap{}
+	var expected *Node
+	for idx := 0; idx < 3; idx++ {
+		node, err := NewNode("", 0, 0, nil)
+		if expected == nil {
+			expected = node
+		}
+		assert.NoError(t, err)
+		heap.Add(node)
+	}
+	assert.Equal(t, 3, heap.Len())
+	heap.Remove(expected)
+	assert.Equal(t, 2, heap.Len())
+}
+
+func TestHeapPopHas(t *testing.T) {
 	heap := Heap{}
 	goheap.Init(&heap)
 	var expected *Node
-	for idx := 0; idx < 3; idx++ {
-		node, err := NewNode(fmt.Sprint(idx), idx, 0, nil)
+	for _, cost := range []int{5, 2, 4, 6, 0, 4, 6, 2} {
+		node, err := NewNode(fmt.Sprint(cost), cost, 0, nil)
+		node.trackedCost = cost
+		if expected == nil {
+			expected = node
+		}
+		assert.NoError(t, err)
+		goheap.Push(&heap, node)
+	}
+	assert.True(t, heap.Has(expected))
+	popped := goheap.Pop(&heap).(*Node)
+	assert.Equal(t, 0, popped.Cost)
+}
+
+func TestHeapPushPopAndPopCheapest(t *testing.T) {
+	heap := Heap{}
+	goheap.Init(&heap)
+	var expected *Node
+	for _, cost := range []int{0, 1, 2} {
+		node, err := NewNode(fmt.Sprint(cost), cost, 0, nil)
+		node.trackedCost = cost
 		if expected == nil {
 			expected = node
 		}
@@ -48,5 +83,30 @@ func TestHeapPop(t *testing.T) {
 		goheap.Push(&heap, node)
 	}
 	popped := goheap.Pop(&heap).(*Node)
-	assert.Equal(t, expected, popped)
+	assert.NotNil(t, popped)
+	popped = goheap.Pop(&heap).(*Node)
+	assert.NotNil(t, popped)
+	popped = heap.PopCheapest()
+	assert.NotNil(t, popped)
+	popped = heap.PopCheapest()
+	assert.Nil(t, popped)
+}
+
+func TestHeapToString(t *testing.T) {
+	heap := Heap{}
+	goheap.Init(&heap)
+	var expected *Node
+	for _, cost := range []int{5, 2, 4} {
+		node, err := NewNode(fmt.Sprintf("node%d", cost), cost, 0, nil)
+		node.trackedCost = cost
+		if expected == nil {
+			expected = node
+		}
+		assert.NoError(t, err)
+		goheap.Push(&heap, node)
+	}
+	expectedString := "{id: node2, cost: 2, con: ['']} -> 3\n" +
+		"{id: node4, cost: 4, con: ['']} -> 5\n" +
+		"{id: node5, cost: 5, con: ['']} -> 6"
+	assert.Equal(t, expectedString, heap.ToString(mockHeuristic))
 }
