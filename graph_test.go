@@ -62,8 +62,9 @@ func TestGraphHas(t *testing.T) {
 func TestGraphPopCheapest(t *testing.T) {
 	graph := Graph{}
 	var expectedCheapest *Node
-	for _, cost := range []int{1, 2, 0, 3} {
-		node, err := NewNode("node", cost, 0, nil)
+	for idx, cost := range []int{1, 2, 0, 3} {
+		node, err := NewNode(fmt.Sprintf("node%d", idx), cost, 0, nil)
+		node.trackedCost = node.Cost
 		assert.NoError(t, err)
 		graph.Add(node)
 		if cost == 0 {
@@ -71,6 +72,22 @@ func TestGraphPopCheapest(t *testing.T) {
 		}
 	}
 	cheapest := graph.PopCheapest(mockHeuristic)
+	assert.Equal(t, expectedCheapest, cheapest)
+}
+
+func TestGraphPopCheapestNoHeuristic(t *testing.T) {
+	graph := Graph{}
+	var expectedCheapest *Node
+	for idx, cost := range []int{1, 2, 0, 3} {
+		node, err := NewNode(fmt.Sprintf("node%d", idx), cost, 0, nil)
+		node.trackedCost = node.Cost
+		assert.NoError(t, err)
+		graph.Add(node)
+		if cost == 0 {
+			expectedCheapest = node
+		}
+	}
+	cheapest := graph.PopCheapest(nil)
 	assert.Equal(t, expectedCheapest, cheapest)
 }
 

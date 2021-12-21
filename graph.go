@@ -57,7 +57,10 @@ func (g *Graph) PopCheapest(heuristic Heuristic) *Node {
 	cost := 0
 	var result *Node
 	for node := range *g {
-		estimatedCost := heuristic(node)
+		var estimatedCost int
+		if heuristic != nil {
+			estimatedCost = heuristic(node)
+		}
 		if !found || node.trackedCost+estimatedCost < cost {
 			found = true
 			result = node
