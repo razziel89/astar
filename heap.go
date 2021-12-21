@@ -22,8 +22,8 @@ import (
 	"sort"
 )
 
-// Heap is a collection of nodes on a minimum heap. Note that there are no guarantees for the nodes
-// to be connected. Ensuring that is the user's task.
+// Heap is a collection of nodes on a minimum heap. It implements Go's heap.Interface. It is used by
+// the heapable graph to store the actual nodes. Don't use this data structre on its own.
 type Heap []*Node
 
 // Len provides the length of the heap. This is needed for Go's heap interface.
