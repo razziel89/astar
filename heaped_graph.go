@@ -51,10 +51,15 @@ func (g *HeapedGraph) Has(node *Node) bool {
 	return node.graph == g
 }
 
-// Add adds a node to the graph. If the node already exists, this a no-op.
+// Add adds a node to the graph. If the node already exists, this a no-op. This panics if the node
+// already has a different graph set.
 func (g *HeapedGraph) Add(node *Node) {
 	if !g.Has(node) {
+		if node.graph != nil {
+			panic("different graph already set")
+		}
 		goheap.Push(&g.Heap, node)
+		node.graph = g
 	}
 }
 
@@ -70,6 +75,8 @@ func (g *HeapedGraph) Remove(findNode *Node) {
 	for idx, node := range g.Heap {
 		if node.Node == findNode {
 			g.Heap = append(g.Heap[0:idx], g.Heap[idx+1:]...)
+			g.Heap[idx].Node = nil
+			node.Node.graph = nil
 			return
 		}
 	}
@@ -79,6 +86,7 @@ func (g *HeapedGraph) Remove(findNode *Node) {
 // is empty.
 func (g *HeapedGraph) PopCheapest() *Node {
 	if val, ok := goheap.Pop(&g.Heap).(*Node); ok {
+		val.graph = nil
 		return val
 	}
 	return nil
