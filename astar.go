@@ -113,9 +113,9 @@ func ExtractPath(end, start *Node, orgOrder bool) ([]*Node, error) {
 func FindReversePath(open, closed *Graph, end *Node, heuristic Heuristic) error {
 	for len(*open) != 0 && !closed.Has(end) {
 		// Find the next cheapest node from the open list. This removes it as well as return it.
-		nextCheckNode := open.PopCheapest(heuristic)
+		nextCheckNode := open.PopCheapest()
 		// Add this node to the closed list.
-		closed.Add(nextCheckNode)
+		closed.Push(nextCheckNode, heuristic(nextCheckNode))
 		// Process each of the neighbours.
 		for neigh := range nextCheckNode.connections {
 			// If a neighbour is already on the closed list, skip it. Don't modify it at all.
@@ -134,7 +134,7 @@ func FindReversePath(open, closed *Graph, end *Node, heuristic Heuristic) error 
 					return fmt.Errorf("node %s already has a predecessor", neigh.ToString())
 				}
 				// Add the new, as yet unknown node to the open list.
-				open.Add(neigh)
+				open.Push(neigh, heuristic(neigh))
 				neigh.prev = nextCheckNode
 				neigh.trackedCost = nextCheckNode.trackedCost + neigh.Cost
 			}

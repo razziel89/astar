@@ -71,23 +71,7 @@ func TestGraphPopCheapest(t *testing.T) {
 			expectedCheapest = node
 		}
 	}
-	cheapest := graph.PopCheapest(mockHeuristic)
-	assert.Equal(t, expectedCheapest, cheapest)
-}
-
-func TestGraphPopCheapestNoHeuristic(t *testing.T) {
-	graph := Graph{}
-	var expectedCheapest *Node
-	for idx, cost := range []int{1, 2, 0, 3} {
-		node, err := NewNode(fmt.Sprintf("node%d", idx), cost, 0, nil)
-		node.trackedCost = node.Cost
-		assert.NoError(t, err)
-		graph.Add(node)
-		if cost == 0 {
-			expectedCheapest = node
-		}
-	}
-	cheapest := graph.PopCheapest(nil)
+	cheapest := graph.PopCheapest()
 	assert.Equal(t, expectedCheapest, cheapest)
 }
 

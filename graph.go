@@ -23,14 +23,15 @@ import (
 )
 
 // Graph is a collection of nodes. Note that there are no guarantees for the nodes to be connected.
-// Ensuring that is the user's task.
-type Graph map[*Node]struct{}
+// Ensuring that is the user's task. Each nodes is assigned to its estimate. That means a node's
+// estimate will never be able to change once added.
+type Graph map[*Node]int
 
 // This is the default value for the graph. Specifying it once here simplifies the code.
-var graphVal = struct{}{}
+var graphVal = 0
 
 // GraphVal is a convenience wrapper to return the default graph value.
-func GraphVal() struct{} {
+func GraphVal() int {
 	return graphVal
 }
 
@@ -45,6 +46,11 @@ func (g *Graph) Add(node *Node) {
 	(*g)[node] = graphVal
 }
 
+// Push adds a node to the graph, including its estimate. If the node already exists, this a no-op.
+func (g *Graph) Push(node *Node, estimate int) {
+	(*g)[node] = estimate
+}
+
 // Remove removes a node from the graph. If the node does not exist, this a no-op.
 func (g *Graph) Remove(node *Node) {
 	delete(*g, node)
@@ -52,15 +58,11 @@ func (g *Graph) Remove(node *Node) {
 
 // PopCheapest retrieves one of the cheapest nodes and removes it. This will return nil if the graph
 // is empty.
-func (g *Graph) PopCheapest(heuristic Heuristic) *Node {
+func (g *Graph) PopCheapest() *Node {
 	found := false
 	cost := 0
 	var result *Node
-	for node := range *g {
-		var estimatedCost int
-		if heuristic != nil {
-			estimatedCost = heuristic(node)
-		}
+	for node, estimatedCost := range *g {
 		if !found || node.trackedCost+estimatedCost < cost {
 			found = true
 			result = node
@@ -73,7 +75,7 @@ func (g *Graph) PopCheapest(heuristic Heuristic) *Node {
 
 // ToString provides a string representation of the graph. The nodes are sorted according to their
 // user-defined names. If you provide a heuristic != nil, the value that heuristic provides for each
-// node is also provided at the end of a line. Provide nil to disable.
+// node is also provided at the end of a line. Providing nil will use the stored estimates.
 func (g *Graph) ToString(heuristic Heuristic) string {
 	nodes := make([]*Node, 0, len(*g))
 	for node := range *g {
@@ -87,10 +89,12 @@ func (g *Graph) ToString(heuristic Heuristic) string {
 	str := ""
 	for idx, node := range nodes {
 		str += node.ToString()
+		estimate := (*g)[node]
 		if heuristic != nil {
-			str += fmt.Sprintf(" -> %d", heuristic(node))
+			estimate = heuristic(node)
 		}
-		if idx != len(nodes)-1 {
+		str += fmt.Sprintf(" -> %d", estimate)
+		if idx < len(nodes)-1 {
 			str += "\n"
 		}
 	}

@@ -82,7 +82,7 @@ func BenchmarkGraphPopCheapest10KNodes(b *testing.B) {
 			graph.Add(node)
 		}
 		for j := 0; j < tenK; j++ {
-			_ = graph.PopCheapest(nil)
+			_ = graph.PopCheapest()
 		}
 	}
 }
@@ -95,7 +95,7 @@ func BenchmarkGraphPopCheapest100KNodes(b *testing.B) {
 			graph.Add(node)
 		}
 		for j := 0; j < hundredK; j++ {
-			_ = graph.PopCheapest(nil)
+			_ = graph.PopCheapest()
 		}
 	}
 }
