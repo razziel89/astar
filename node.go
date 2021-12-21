@@ -47,6 +47,8 @@ type Node struct {
 	trackedCost int
 	// Member prev tracks the previous node on the minimal cost connection.
 	prev *Node
+	// Member heap tracks which graph this node is in.
+	graph GraphOps
 }
 
 // NewNode creates a new node. Provide an id string that describes this node for the user. Also

@@ -69,16 +69,6 @@ func BenchmarkHeapPush100KNodes(b *testing.B) {
 	}
 }
 
-func BenchmarkHeapAdd10KNodes(b *testing.B) {
-	heap := Heap{}
-	for i := 0; i < b.N; i++ {
-		for j := 0; j < tenK; j++ {
-			node, _ := NewNode("", tenK-j, 0, nil)
-			heap.Add(node)
-		}
-	}
-}
-
 func BenchmarkGraphPopCheapest10KNodes(b *testing.B) {
 	graph := Graph{}
 	for i := 0; i < b.N; i++ {

@@ -30,43 +30,27 @@ func TestHeapLenPush(t *testing.T) {
 	for idx := 0; idx < 3; idx++ {
 		node, err := NewNode("", 0, 0, nil)
 		assert.NoError(t, err)
-		heap.Push(node)
+		heap.Push(HeapElement{Node: node, Estimate: 0})
 	}
 	assert.Equal(t, 3, heap.Len())
 }
 
-func TestHeapAddRemove(t *testing.T) {
-	heap := Heap{}
-	var expected *Node
-	for idx := 0; idx < 3; idx++ {
-		node, err := NewNode("", 0, 0, nil)
-		if expected == nil {
-			expected = node
-		}
-		assert.NoError(t, err)
-		heap.Add(node)
-	}
-	assert.Equal(t, 3, heap.Len())
-	heap.Remove(expected)
-	assert.Equal(t, 2, heap.Len())
-}
-
-func TestHeapPopHas(t *testing.T) {
+func TestHeapPop(t *testing.T) {
 	heap := Heap{}
 	goheap.Init(&heap)
 	var expected *Node
 	for _, cost := range []int{5, 2, 4, 6, 0, 4, 6, 2} {
 		node, err := NewNode(fmt.Sprint(cost), cost, 0, nil)
 		node.trackedCost = cost
-		if expected == nil {
+		if cost == 0 {
 			expected = node
 		}
 		assert.NoError(t, err)
-		goheap.Push(&heap, node)
+		goheap.Push(&heap, HeapElement{Node: node, Estimate: 0})
 	}
-	assert.True(t, heap.Has(expected))
-	popped := goheap.Pop(&heap).(*Node)
-	assert.Equal(t, 0, popped.Cost)
+	popped := goheap.Pop(&heap).(HeapElement)
+	assert.Equal(t, 0, popped.Node.Cost)
+	assert.Equal(t, expected, popped.Node)
 }
 
 func TestHeapPushPopAndPopCheapest(t *testing.T) {
@@ -80,16 +64,15 @@ func TestHeapPushPopAndPopCheapest(t *testing.T) {
 			expected = node
 		}
 		assert.NoError(t, err)
-		goheap.Push(&heap, node)
+		goheap.Push(&heap, HeapElement{Node: node, Estimate: 0})
 	}
-	popped := goheap.Pop(&heap).(*Node)
+	popped := goheap.Pop(&heap).(HeapElement)
 	assert.NotNil(t, popped)
-	popped = goheap.Pop(&heap).(*Node)
+	popped = goheap.Pop(&heap).(HeapElement)
 	assert.NotNil(t, popped)
-	popped = heap.PopCheapest()
+	popped = goheap.Pop(&heap).(HeapElement)
 	assert.NotNil(t, popped)
-	popped = heap.PopCheapest()
-	assert.Nil(t, popped)
+	assert.Zero(t, heap.Len())
 }
 
 func TestHeapToString(t *testing.T) {
@@ -103,7 +86,7 @@ func TestHeapToString(t *testing.T) {
 			expected = node
 		}
 		assert.NoError(t, err)
-		goheap.Push(&heap, node)
+		goheap.Push(&heap, HeapElement{Node: node, Estimate: 0})
 	}
 	expectedString := "{id: node2, cost: 2, con: ['']} -> 3\n" +
 		"{id: node4, cost: 4, con: ['']} -> 5\n" +
