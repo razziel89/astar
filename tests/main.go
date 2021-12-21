@@ -25,7 +25,7 @@ func main() {
 	nodes := make([]*astar.Node, 0, gridSize*gridSize)
 	heuristic := astar.ConstantHeuristic{}
 
-	log.Println("iniitalising")
+	log.Println("inititalising")
 
 	// Create nodes and compute constant heuristic.
 	for xIdx := 0; xIdx < gridSize; xIdx++ {
