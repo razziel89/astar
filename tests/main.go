@@ -12,10 +12,12 @@ import (
 )
 
 const (
-	seed     = 42
-	maxRand  = 10
-	gridSize = 200
-	numNeigh = 4
+	seed           = 42
+	maxRand        = 10
+	gridSize       = 200
+	numNeigh       = 4
+	expectedLength = 417
+	expectedCost   = 827
 )
 
 func main() {
@@ -78,11 +80,30 @@ func main() {
 
 	startTime := time.Now()
 	// Run the test.
-	_, err := astar.FindPath(graph, start, end, heuristic.Heuristic(0))
+	path, err := astar.FindPath(graph, start, end, heuristic.Heuristic(0))
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	duration := time.Since(startTime)
+
+	log.Println("path is")
+
+	cost := 0
+	for _, node := range path {
+		log.Println(node.ToString())
+		cost += node.Cost
+	}
+
+	if len(path) != expectedLength {
+		log.Fatal(
+			"path does not have the expected length (want: %d, has: %d",
+			expectedLength, len(path),
+		)
+	}
+
+	if cost != expectedCost {
+		log.Fatalf("path does not have the expected cost (want: %d, has: %d)", expectedCost, cost)
+	}
 
 	log.Println("obtained path")
 
