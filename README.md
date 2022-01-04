@@ -5,6 +5,8 @@ Golang.
 Please see [wikipedia](https://en.wikipedia.org/wiki/A*_search_algorithm) for a
 description of the algorithm.
 
+![Astar logo](./logo.svg)
+
 # State
 
 This software is in alpha state.
