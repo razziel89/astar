@@ -19,6 +19,7 @@ package astar
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,16 +32,25 @@ type intNode struct {
 	cost int
 }
 
-// Function nodeListToMap converts a list of nodes to a map to simplify access. If the nodes in the
-// list are not unique, an error is returned.
-func nodeListToMap(graph []*Node) (Graph, error) {
-	result := make(Graph, len(graph))
+// Function nodeListToGraph converts a list of nodes to a map to simplify access. If the nodes in
+// the list are not unique, an error is returned.
+func nodeListToGraph(graph []*Node, graphType string) (GraphOps, error) {
+	var result GraphOps
+	switch graphType {
+	case "default":
+		tmp := make(Graph, len(graph))
+		result = &tmp
+	case "heaped":
+		result = NewHeapedGraph(len(graph))
+	default:
+		log.Fatal("unknown result type")
+	}
 	for _, node := range graph {
 		result.Add(node)
 	}
-	if len(result) != len(graph) {
+	if result.Len() != len(graph) {
 		err := fmt.Errorf("duplicate nodes in input")
-		return Graph{}, err
+		return nil, err
 	}
 	return result, nil
 }
@@ -91,12 +101,14 @@ func TestBasicConnectionStraightLine(t *testing.T) {
 			init.AddPairwiseConnection(con)
 		}
 	}
-	nodeMap, err := nodeListToMap(nodes)
-	assert.NoError(t, err)
-	path, err := FindPath(&nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
-	assert.NoError(t, err)
-	expectedPath := []*Node{nodes[0], nodes[1], nodes[2]}
-	assertPathsEqual(t, expectedPath, path)
+	for _, graphType := range []string{"default", "heaped"} {
+		nodeMap, err := nodeListToGraph(nodes, graphType)
+		assert.NoError(t, err)
+		path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+		assert.NoError(t, err)
+		expectedPath := []*Node{nodes[0], nodes[1], nodes[2]}
+		assertPathsEqual(t, expectedPath, path)
+	}
 }
 
 func TestBasicConnectionStraightLineWithEndingBranches(t *testing.T) {
@@ -139,9 +151,9 @@ func TestBasicConnectionStraightLineWithEndingBranches(t *testing.T) {
 			init.AddPairwiseConnection(con)
 		}
 	}
-	nodeMap, err := nodeListToMap(nodes)
+	nodeMap, err := nodeListToGraph(nodes, "default")
 	assert.NoError(t, err)
-	path, err := FindPath(&nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[4], nodes[8]}
 	assertPathsEqual(t, expectedPath, path)
@@ -211,9 +223,9 @@ func TestBasicConnectionSquareEqualCost(t *testing.T) {
 			init.AddPairwiseConnection(con)
 		}
 	}
-	nodeMap, err := nodeListToMap(nodes)
+	nodeMap, err := nodeListToGraph(nodes, "default")
 	assert.NoError(t, err)
-	path, err := FindPath(&nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[1], nodes[4], nodes[7], nodes[8]}
 	assertPathsEqual(t, expectedPath, path)
@@ -283,9 +295,9 @@ func TestBasicConnectionSquareVaryingCost(t *testing.T) {
 			init.AddPairwiseConnection(con)
 		}
 	}
-	nodeMap, err := nodeListToMap(nodes)
+	nodeMap, err := nodeListToGraph(nodes, "default")
 	assert.NoError(t, err)
-	path, err := FindPath(&nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[3], nodes[4], nodes[5], nodes[8]}
 	assertPathsEqual(t, expectedPath, path)
@@ -357,9 +369,9 @@ func TestOneWayConnection(t *testing.T) {
 			init.AddConnection(con)
 		}
 	}
-	nodeMap, err := nodeListToMap(nodes)
+	nodeMap, err := nodeListToGraph(nodes, "default")
 	assert.NoError(t, err)
-	path, err := FindPath(&nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath := []*Node{nodes[0], nodes[3], nodes[4], nodes[5], nodes[8]}
 	assertPathsEqual(t, expectedPath, path)
@@ -368,7 +380,7 @@ func TestOneWayConnection(t *testing.T) {
 	// that the connection from nodes[8] to nodes[7] added above is not taken, since it is only one
 	// way.
 	nodes[7].AddConnection(nodes[8])
-	path, err = FindPath(&nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+	path, err = FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
 	assert.NoError(t, err)
 	expectedPath = []*Node{nodes[0], nodes[3], nodes[4], nodes[7], nodes[8]}
 	assertPathsEqual(t, expectedPath, path)
