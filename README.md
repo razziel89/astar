@@ -5,7 +5,7 @@ Golang.
 Please see [wikipedia](https://en.wikipedia.org/wiki/A*_search_algorithm) for a
 description of the algorithm.
 
-![Astar logo](./logo.svg)
+<img src="./logo.svg" alt="astar logo" width="200"/>
 
 # State
 
