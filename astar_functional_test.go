@@ -102,6 +102,7 @@ func TestBasicConnectionStraightLine(t *testing.T) {
 		}
 	}
 	for _, graphType := range []string{"default", "heaped"} {
+		t.Logf("Running for %s", graphType)
 		nodeMap, err := nodeListToGraph(nodes, graphType)
 		assert.NoError(t, err)
 		path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
@@ -152,6 +153,7 @@ func TestBasicConnectionStraightLineWithEndingBranches(t *testing.T) {
 		}
 	}
 	for _, graphType := range []string{"default", "heaped"} {
+		t.Logf("Running for %s", graphType)
 		nodeMap, err := nodeListToGraph(nodes, graphType)
 		assert.NoError(t, err)
 		path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
@@ -226,6 +228,7 @@ func TestBasicConnectionSquareEqualCost(t *testing.T) {
 		}
 	}
 	for _, graphType := range []string{"default", "heaped"} {
+		t.Logf("Running for %s", graphType)
 		nodeMap, err := nodeListToGraph(nodes, graphType)
 		assert.NoError(t, err)
 		path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
@@ -300,14 +303,15 @@ func TestBasicConnectionSquareVaryingCost(t *testing.T) {
 		}
 	}
 	// This test fails for the heaped graph.
-	// for _, graphType := range []string{"default", "heaped"} {
-	nodeMap, err := nodeListToGraph(nodes, "default")
-	assert.NoError(t, err)
-	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
-	assert.NoError(t, err)
-	expectedPath := []*Node{nodes[0], nodes[3], nodes[4], nodes[5], nodes[8]}
-	assertPathsEqual(t, expectedPath, path)
-	// }
+	for _, graphType := range []string{"default", "heaped"} {
+		t.Logf("Running for %s", graphType)
+		nodeMap, err := nodeListToGraph(nodes, graphType)
+		assert.NoError(t, err)
+		path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+		assert.NoError(t, err)
+		expectedPath := []*Node{nodes[0], nodes[3], nodes[4], nodes[5], nodes[8]}
+		assertPathsEqual(t, expectedPath, path)
+	}
 }
 
 //nolint:funlen
