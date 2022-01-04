@@ -9,13 +9,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="210mm"
-   height="297mm"
-   viewBox="0 0 210 297"
+   width="50.899902mm"
+   height="48.61404mm"
+   viewBox="0 0 50.899902 48.61404"
    version="1.1"
    id="svg8"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
-   sodipodi:docname="astar_logo.svg">
+   sodipodi:docname="logo.svg">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -26,14 +26,20 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="266.22232"
-     inkscape:cy="810.49085"
+     inkscape:cx="23.359177"
+     inkscape:cy="106.15211"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
-     showgrid="true">
+     showgrid="true"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0">
     <inkscape:grid
        type="xygrid"
-       id="grid10" />
+       id="grid10"
+       originx="-44.650026"
+       originy="-186.35631" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -50,14 +56,15 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(-44.650024,-62.029669)">
     <path
        sodipodi:type="star"
        style="opacity:1;fill:#fff480;fill-opacity:1;stroke:#ffb000;stroke-width:3;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:10.21228313;stroke-opacity:1"
        id="path16"
        sodipodi:sides="5"
        sodipodi:cx="70.099976"
-       sodipodi:cy="88.665082"
+       sodipodi:cy="88.665085"
        sodipodi:r1="25.135416"
        sodipodi:r2="12.431725"
        sodipodi:arg1="-1.5707963"
