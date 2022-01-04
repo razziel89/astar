@@ -56,27 +56,31 @@ func (g *HeapedGraph) Has(node *Node) bool {
 func (g *HeapedGraph) Add(node *Node) {
 	if !g.Has(node) {
 		if node.graph != nil {
-			panic("different graph already set")
+			panic(fmt.Errorf("different graph already set"))
 		}
-		goheap.Push(&g.Heap, node)
+		elem := HeapElement{Node: node, Estimate: graphVal}
+		goheap.Push(&g.Heap, elem)
 		node.graph = g
 	}
 }
 
 // Push adds a node to the graph, including its estimate. If the node already exists, this a no-op.
 func (g *HeapedGraph) Push(node *Node, estimate int) {
-	elem := HeapElement{Node: node, Estimate: estimate}
-	goheap.Push(&g.Heap, elem)
+	if !g.Has(node) {
+		elem := HeapElement{Node: node, Estimate: estimate}
+		goheap.Push(&g.Heap, elem)
+		node.graph = g
+	}
 }
 
 // Remove removes a node from the graph. If the node does not exist, this a no-op. This function is
-// inefficient but not needed for the algorithm in general.t
+// inefficient but not needed for the algorithm in general.
 func (g *HeapedGraph) Remove(findNode *Node) {
 	for idx, node := range g.Heap {
 		if node.Node == findNode {
-			g.Heap = append(g.Heap[0:idx], g.Heap[idx+1:]...)
+			g.Heap[idx].Node.graph = nil
 			g.Heap[idx].Node = nil
-			node.Node.graph = nil
+			g.Heap = append(g.Heap[0:idx], g.Heap[idx+1:]...)
 			return
 		}
 	}
@@ -85,9 +89,10 @@ func (g *HeapedGraph) Remove(findNode *Node) {
 // PopCheapest retrieves one of the cheapest nodes and removes it. This will return nil if the graph
 // is empty.
 func (g *HeapedGraph) PopCheapest() *Node {
-	if val, ok := goheap.Pop(&g.Heap).(*Node); ok {
-		val.graph = nil
-		return val
+	if len(g.Heap) > 0 {
+		val := goheap.Pop(&g.Heap).(HeapElement)
+		val.Node.graph = nil
+		return val.Node
 	}
 	return nil
 }
