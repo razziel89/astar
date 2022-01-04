@@ -28,7 +28,8 @@ coverage: coverage.out
 
 .PHONY: performance
 performance:
-	cd ./tests && go run .
+	cd ./tests && echo MAPPED GRAPH && QUIET=1 GRAPH_TYPE=MAPPED go run .
+	cd ./tests && echo HEAPED GRAPH && QUIET=1 GRAPH_TYPE=HEAPED go run .
 
 bench: .bench.log
 

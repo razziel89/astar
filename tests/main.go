@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/razziel89/astar"
@@ -20,6 +21,14 @@ const (
 	expectedCost   = 827
 )
 
+var quiet = os.Getenv("QUIET") == "1"
+
+func logStr(str string) {
+	if !quiet {
+		log.Print(str)
+	}
+}
+
 func main() {
 	// Generate test data.
 	rand.Seed(seed)
@@ -27,7 +36,7 @@ func main() {
 	nodes := make([]*astar.Node, 0, gridSize*gridSize)
 	heuristic := astar.ConstantHeuristic{}
 
-	log.Println("inititalising")
+	logStr("inititalising")
 
 	// Create nodes and compute constant heuristic.
 	for xIdx := 0; xIdx < gridSize; xIdx++ {
@@ -43,7 +52,7 @@ func main() {
 		}
 	}
 
-	log.Println("created nodes")
+	logStr("created nodes")
 
 	start := nodes[0]
 	end := nodes[len(nodes)-1]
@@ -68,15 +77,24 @@ func main() {
 		}
 	}
 
-	log.Println("connected nodes")
+	logStr("connected nodes")
 
 	// Convert to graph.
-	graph := astar.NewGraph()
+	var graph astar.GraphOps
+	switch os.Getenv("GRAPH_TYPE") {
+	case "HEAPED":
+		graph = astar.NewHeapedGraph(gridSize * gridSize)
+	case "MAPPED":
+		graph = astar.NewGraph()
+	default:
+		log.Fatal("Env var GRAPH_TYPE not set to a supported value.")
+	}
+
 	for _, node := range nodes {
 		graph.Add(node)
 	}
 
-	log.Println("converted to graph")
+	logStr("converted to graph")
 
 	startTime := time.Now()
 	// Run the test.
@@ -86,11 +104,11 @@ func main() {
 	}
 	duration := time.Since(startTime)
 
-	log.Println("path is")
+	logStr("path is")
 
 	cost := 0
 	for _, node := range path {
-		log.Println(node.ToString())
+		logStr(node.ToString())
 		cost += node.Cost
 	}
 
@@ -105,7 +123,7 @@ func main() {
 		log.Fatalf("path does not have the expected cost (want: %d, has: %d)", expectedCost, cost)
 	}
 
-	log.Println("obtained path")
+	logStr("obtained path")
 
 	fmt.Println(duration)
 }
