@@ -47,7 +47,8 @@ type Node struct {
 	trackedCost int
 	// Member prev tracks the previous node on the minimal cost connection.
 	prev *Node
-	// Member heap tracks which graph this node is in.
+	// Member graph tracks which graph this node is in. This will be set appripriately by the
+	// algorithm when adding and removing nodes to or from a heaped graph.
 	graph GraphOps
 }
 
