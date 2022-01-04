@@ -36,16 +36,23 @@ func nodeResetFn(node *Node) error {
 	return nil
 }
 
-// FindPath finds the path between the start and end node. It takes a graph in the form of a set of
-// nodes, a start node, and an end node. It returns errors in case there are problems with the input
-// or during execution. The path is returned in the correct order. This is achieved by using the
-// normal algorithm and reversing the path at the end.
+// FindPath finds the path between the start and end node. It is a convenience wrapper around
+// FindReversePath. FindPath takes a graph in the form of a set of nodes, a start node, and an end
+// node. It returns errors in case there are problems with the input or during execution. The path
+// is returned in the correct order. This is achieved by using the normal algorithm and reversing
+// the path at the end.
+//
+// This function requires you to provide one of the graph types from this package as the `graph`
+// argument. If you want to use your own implementation of a GraphOps, you will need to use
+// FindReversePath instead. Use NewGraph or NewHeapedGraph to obtain a suitable data structure.
 //
 // This implementation modifies the original nodes during execution! In the end, the nodes are
-// reverted to their original states, which allows you to use the same input graph again.
+// reverted to null states (private members set to the appropriate zero values), which allows you to
+// use the same input graph again with FindPath.
 //
-// It also takes a heuristic that estimates the cost for moving from a node to the end. In the
-// easiest case, this can be built using ConstantHeuristic.
+// FindPath also takes a heuristic that estimates the cost for moving from a node to the end. In the
+// easiest case, this can be built using ConstantHeuristic. This heuristic is evaluated exactly once
+// for a node when adding that node to an internal graph.
 func FindPath(graph GraphOps, start *Node, end *Node, heuristic Heuristic) ([]*Node, error) {
 
 	// Sanity checks
@@ -56,14 +63,29 @@ func FindPath(graph GraphOps, start *Node, end *Node, heuristic Heuristic) ([]*N
 		return []*Node{}, fmt.Errorf("input sanitation: end node not in graph")
 	}
 
+	// Open and closed lists will be of the same type as the input graph. To support that, we assert
+	// the type here and initialise appropriately.
+	var open, closed GraphOps
+	switch graph.(type) {
+	case *Graph:
+		open = NewGraph()
+		closed = NewGraph()
+	case *HeapedGraph:
+		open = NewHeapedGraph(1)
+		closed = NewHeapedGraph(1)
+	default:
+		err := fmt.Errorf(
+			"unknown input GraphOps type, if you provided your own, use FindReversePath directly",
+		)
+		return []*Node{}, err
+	}
+
 	// Variable open is our open list containing all nodes that should still be checked. At the
 	// beginning, this is only the start node.
-	open := Graph{start: graphVal}
-
 	// The closed list is empty at the beginning.
-	closed := Graph{}
+	open.Push(start, graphVal)
 
-	err := findReversePath(&open, &closed, end, heuristic)
+	err := findReversePath(open, closed, end, heuristic)
 	if err != nil {
 		return []*Node{}, fmt.Errorf("error during path finding: %s", err.Error())
 	}

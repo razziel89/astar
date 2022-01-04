@@ -112,9 +112,11 @@ func main() {
 		cost += node.Cost
 	}
 
+	logStr(fmt.Sprintf("total cost is %d", cost))
+
 	if len(path) != expectedLength {
-		log.Fatal(
-			"path does not have the expected length (want: %d, has: %d",
+		log.Fatalf(
+			"path does not have the expected length (want: %d, has: %d)",
 			expectedLength, len(path),
 		)
 	}
