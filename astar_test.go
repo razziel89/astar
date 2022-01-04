@@ -183,7 +183,8 @@ func TestFindPathBetterConnection(t *testing.T) {
 	mockMid.AddConnection(mockEnd)
 	mockEnd.AddConnection(mockMid)
 
-	mockMid.trackedCost = 1000
+	orgCost := 1000
+	mockMid.trackedCost = orgCost
 	mockEnd.prev = nil
 
 	err := FindReversePath(
@@ -192,4 +193,5 @@ func TestFindPathBetterConnection(t *testing.T) {
 	)
 
 	assert.NoError(t, err)
+	assert.NotEqual(t, orgCost, mockMid.trackedCost)
 }
