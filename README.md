@@ -8,16 +8,12 @@ description of the algorithm.
 
 <img src="./logo.png" alt="astar logo" width="200"/>
 
-# State
-
-This software is in alpha state.
-Development started in Dec 2021.
-
 # Overview
 
 The algorithm has been developed during the amazing [Advent of
-Code](https://adventofcode.com) evenent in 2021.
-Test coverage is currently limited but will be expanded.
+Code](https://adventofcode.com) event in 2021.
+This software is in beta state.
+Development started in Dec 2021.
 
 # How to use
 
@@ -47,7 +43,7 @@ func main() {
 	neighbours := 4
 	// This is the graph we will be using to find the path. Provide the
     // estimated number of nodes for improved performance.
-	graph := astar.NewGraph(gridSize * gridSize)
+	graph := astar.NewHeapedGraph(gridSize * gridSize)
 	// We remember the node for each position. This makes creating
 	// connections easier.
 	posToNode := map[[2]int]*astar.Node{}
@@ -63,10 +59,9 @@ func main() {
 			// Create a name for the node, the algorithm does not use
 			// this value.
 			nodeName := fmt.Sprintf("x:%d,y:%d", x, y)
-			// Note that we increase cost to larger values for x and
-			// y, but quadratically for x for this particular example.
-			// Furthermore, we make the route through the middle
-			// preferred.
+            // Note that we decrease the cost quadratically towards
+            // x==5 and increase it for y towards higher values. That
+            // way, the path through the middle is preferred.
 			nodeCost := (x-5)*(x-5) + 2*y
 			// Nodes can take an arbitrary payload. You can attach the
 			// position, for example. We don't use any payload for
