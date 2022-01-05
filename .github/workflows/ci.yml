@@ -1,0 +1,35 @@
+name: "ci"
+
+on:
+  push:
+  pull_request:
+    branches: main
+  schedule:
+    # Run at 5:21 am every Thursday morning.
+    - cron: '21 5 * * 4'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Golang
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.17'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install make
+
+    - name: Set up project
+      run: make setup
+
+    - name: Lint project
+      run: make lint
+
+    - name: Test project
+      run: make test

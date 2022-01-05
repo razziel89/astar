@@ -2,6 +2,11 @@ SHELL := /bin/bash
 
 default: lint
 
+.PHONY: setup
+setup:
+	go mod download
+	go mod tidy
+
 build: astar
 
 astar: *.go
