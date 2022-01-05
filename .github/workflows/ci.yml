@@ -58,7 +58,7 @@ jobs:
         files: README.md
 
     - name: Push changes if on main branch
-      if: steps.changed_files.outputs.files_changed == 'true' && github.ref == 'ref/head/main'
+      if: steps.changed_files.outputs.files_changed == 'true' && github.ref == 'refs/heads/main'
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ github.token }}
