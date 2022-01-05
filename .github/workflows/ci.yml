@@ -57,6 +57,21 @@ jobs:
       with:
         files: README.md
 
+    - name: Cond check one
+      if: steps.changed_files.outputs.files_changed == 'true'
+      run: |
+        echo one
+
+    - name: Cond check two
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo two
+
+    - name: Output vals
+      run: |
+        echo ${{ steps.changed_files.outputs.files_changed }}
+        echo ${{ github.ref }}
+
     - name: Push changes if on main branch
       if: steps.changed_files.outputs.files_changed == 'true' && github.ref == 'refs/heads/main'
       uses: ad-m/github-push-action@master
