@@ -174,3 +174,36 @@ func TestHeapedGraphToString(t *testing.T) {
 		"{id: node3, cost: 3, con: ['']} -> 4"
 	assert.Equal(t, expectedStr, str)
 }
+
+func TestHeapedGraphUpdateIfBetterSuccess(t *testing.T) {
+	graph := NewHeapedGraph(0)
+
+	node1, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+	graph.Add(node1)
+	node2, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+	graph.Add(node2)
+
+	node2.AddPairwiseConnection(node1)
+	node2.trackedCost = 0
+	assert.Nil(t, node2.prev)
+
+	graph.UpdateIfBetter(node2, node1, -10)
+	assert.Equal(t, node1, node2.prev)
+}
+
+func TestHeapedGraphUpdateIfBetterFailure(t *testing.T) {
+	graph := NewHeapedGraph(0)
+
+	node, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+
+	defer func() {
+		err, wasError := recover().(error)
+		assert.True(t, wasError)
+		assert.Error(t, err)
+	}()
+
+	graph.UpdateIfBetter(node, nil, 0)
+}
