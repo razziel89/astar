@@ -92,8 +92,8 @@ func FindPath(graph GraphOps, start, end *Node, heuristic Heuristic) (path []*No
 	var open, closed, resetGraph GraphOps
 	switch graph.(type) {
 	case *Graph:
-		open = NewGraph()
-		closed = NewGraph()
+		open = NewGraph(1)
+		closed = NewGraph(1)
 		resetGraph = nil
 	case *HeapedGraph:
 		open = NewHeapedGraph(1)

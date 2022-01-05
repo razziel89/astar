@@ -85,7 +85,7 @@ func main() {
 	case "HEAPED":
 		graph = astar.NewHeapedGraph(gridSize * gridSize)
 	case "MAPPED":
-		graph = astar.NewGraph()
+		graph = astar.NewGraph(gridSize * gridSize)
 	default:
 		log.Fatal("Env var GRAPH_TYPE not set to a supported value.")
 	}

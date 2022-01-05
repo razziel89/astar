@@ -53,9 +53,11 @@ type GraphOps interface {
 type Graph map[*Node]int
 
 // NewGraph obtains a new graph. No arguments are required. This function returns a normal graph
-// based on a Go map. That structure has sub-optimal performance but works.
-func NewGraph() GraphOps {
-	return &Graph{}
+// based on a Go map. That structure has sub-optimal performance but works. Specify the estimated
+// number of nodes as argument to boost performance. See Graph for details.
+func NewGraph(estimatedSize int) GraphOps {
+	self := make(Graph, estimatedSize)
+	return &self
 }
 
 // This is the default value for the graph. Specifying it once here simplifies the code.

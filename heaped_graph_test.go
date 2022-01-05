@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewGraph(t *testing.T) {
+func TestNewHeapedGraph(t *testing.T) {
 	graph := NewHeapedGraph(100).(*HeapedGraph)
 	assert.Equal(t, 100, cap(graph.Heap))
 }

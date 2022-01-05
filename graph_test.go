@@ -31,6 +31,12 @@ func mockHeuristic(node *Node) int {
 	return node.Cost + 1
 }
 
+func TestNewGraph(t *testing.T) {
+	_ = NewGraph(100).(*Graph)
+	// We cannot check the capacity of a map in Go. Thus, this check is somewhat incomplete.
+	// assert.Equal(t, 100, cap(*graph))
+}
+
 func TestGraphAddRemoveSuccess(t *testing.T) {
 	node, err := NewNode("node", 0, 0, nil)
 	assert.NoError(t, err)
