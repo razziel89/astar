@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+COVERAGE ?= coverage.out
 
 default: lint
 
@@ -23,12 +24,12 @@ test: .test.log
 		go test ./... | tee .test.log || \
 		rm .test.log
 
-coverage.out: go.* *.go
-	go test -coverprofile=coverage.out 
-	go tool cover -html=coverage.out -o coverage.html
+$(COVERAGE): go.* *.go
+	go test -covermode=count -coverprofile=$(COVERAGE) 
+	go tool cover -html=$(COVERAGE) -o coverage.html
 
 .PHONY: coverage
-coverage: coverage.out
+coverage: $(COVERAGE)
 	xdg-open coverage.html
 
 .PHONY: performance
