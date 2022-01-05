@@ -54,7 +54,7 @@ jobs:
     - name: Check whether the README was actually updated and commit if it was
       id: readme_check
       run: |
-        readme_changed=$(git diff-index --quiet HEAD -- README.md; echo $?)
+        readme_changed=$(git diff-index --quiet HEAD -- README.md; echo $?) || :
         echo "::set-output name=README_CHANGED::${readme_changed}"
         if [[ $readme_changed -eq 1 ]]; then
           git config --local user.email 'github-actions[bot]@users.noreply.github.com' &&
