@@ -53,6 +53,11 @@ func TestHeapPop(t *testing.T) {
 	assert.Equal(t, expected, popped.Node)
 }
 
+func TestHeapPopEmpty(t *testing.T) {
+	heap := Heap{}
+	assert.Nil(t, heap.Pop())
+}
+
 func TestHeapPushPopAndPopCheapest(t *testing.T) {
 	heap := Heap{}
 	goheap.Init(&heap)
