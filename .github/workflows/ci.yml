@@ -51,25 +51,14 @@ jobs:
       with:
         filename: coverage_badge_report.out
 
-    - name: Check whether the README was actually updated
+    - name: Check whether the README was actually updated and commit if it was
       id: readme_check
       run: |
-        echo "::set-output name=README_CHANGED::$(git diff-index --quiet HEAD -- README.md; echo $?)"
-
-    - name: Cond check one
-      if: steps.readme_check.outputs.README_CHANGED == '1'
-      run: |
-        echo one
-
-    - name: Cond check two
-      if: github.ref == 'refs/heads/main'
-      run: |
-        echo two
-
-    - name: Output vals
-      run: |
-        echo ${{ steps.readme_check.outputs.README_CHANGED }}
-        echo ${{ github.ref }}
+        readme_changed=$(git diff-index --quiet HEAD -- README.md; echo $?)
+        echo "::set-output name=README_CHANGED::${readme_changed}"
+        if [[ $readme_changed -eq 1 ]]; then
+          git add README.md && git commit -m "Auto-update coverage badge"
+        fi
 
     - name: Push changes if on main branch
       if: steps.readme_check.outputs.README_CHANGED == '1' && github.ref == 'refs/heads/main'
