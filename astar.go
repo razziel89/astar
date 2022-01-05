@@ -27,19 +27,67 @@ import (
 var (
 	extractPath     = ExtractPath
 	findReversePath = FindReversePath
+	resetFnGetter   = getNodeResetFn
 )
 
-// FindPath finds the path between the start and end node. It takes a graph in the form of a set of
-// nodes, a start node, and an end node. It returns errors in case there are problems with the input
-// or during execution. The path is returned in the correct order. This is achieved by using the
-// normal algorithm and reversing the path at the end.
+// Error is the error type that can be returned by the astar package. It is used to determine
+// which errors occurred inside the package and which ones occurred outside of it.
+type Error struct {
+	message string
+}
+
+func (e Error) Error() string {
+	return e.message
+}
+
+func getNodeResetFn(resetGraph GraphOps) func(*Node) error {
+	return func(node *Node) error {
+		node.prev = nil
+		node.trackedCost = defaultCost
+		node.graph = resetGraph
+		return nil
+	}
+}
+
+func getPanicHandler(err *error) func() {
+	return func() {
+		if recovered := recover(); recovered != nil {
+			// Something panicked. Determine whether we did. If not, propagate the panic.
+			if panickedErr, wasError := recovered.(Error); wasError {
+				// We panicked. Propagate the error, but don't overwrite existing errors.
+				if err != nil && *err == nil {
+					*err = panickedErr
+				}
+			} else {
+				// We didn't panic. Propagate the panic.
+				panic(recovered)
+			}
+		}
+	}
+}
+
+// FindPath finds the path between the start and end node. It is a convenience wrapper around
+// FindReversePath. FindPath takes a graph in the form of a set of nodes, a start node, and an end
+// node. It returns errors in case there are problems with the input or during execution. The path
+// is returned in the correct order. This is achieved by using the normal algorithm and reversing
+// the path at the end.
+//
+// This function requires you to provide one of the graph types from this package as the `graph`
+// argument. Use NewGraph or NewHeapedGraph to obtain a suitable data structure. If you want to use
+// your own implementation of a GraphOps, you will need to use FindReversePath instead.
 //
 // This implementation modifies the original nodes during execution! In the end, the nodes are
-// reverted to their original states, which allows you to use the same input graph again.
+// reverted to null states (private members set to the appropriate zero values), which allows you to
+// use the same input graph again with FindPath.
 //
-// It also takes a heuristic that estimates the cost for moving from a node to the end. In the
-// easiest case, this can be built using ConstantHeuristic.
-func FindPath(graph Graph, start *Node, end *Node, heuristic Heuristic) ([]*Node, error) {
+// FindPath also takes a heuristic that estimates the cost for moving from a node to the end. In the
+// easiest case, this can be built using ConstantHeuristic. This heuristic is evaluated exactly once
+// for a node when adding that node to an internal graph.
+//
+// This function is guaranteed to handle panics from this package and not to propagate the panic.
+func FindPath(graph GraphOps, start, end *Node, heuristic Heuristic) (path []*Node, err error) {
+	// Handle panics internally.
+	defer getPanicHandler(&err)()
 
 	// Sanity checks
 	if !graph.Has(start) {
@@ -49,14 +97,30 @@ func FindPath(graph Graph, start *Node, end *Node, heuristic Heuristic) ([]*Node
 		return []*Node{}, fmt.Errorf("input sanitation: end node not in graph")
 	}
 
+	// Open and closed lists will be of the same type as the input graph. To support that, we assert
+	// the type here and initialise appropriately.
+	var open, closed, resetGraph GraphOps
+	switch graph.(type) {
+	case *Graph:
+		open = NewGraph(1)
+		closed = NewGraph(1)
+		resetGraph = nil
+	case *HeapedGraph:
+		open = NewHeapedGraph(1)
+		closed = NewHeapedGraph(1)
+		resetGraph = graph
+	default:
+		err := fmt.Errorf(
+			"unknown input GraphOps type, if you provided your own, use FindReversePath directly",
+		)
+		return []*Node{}, err
+	}
 	// Variable open is our open list containing all nodes that should still be checked. At the
 	// beginning, this is only the start node.
-	open := Graph{start: graphVal}
-
 	// The closed list is empty at the beginning.
-	closed := Graph{}
+	open.Push(start, graphVal)
 
-	err := findReversePath(&open, &closed, end, heuristic)
+	err = findReversePath(open, closed, end, heuristic)
 	if err != nil {
 		return []*Node{}, fmt.Errorf("error during path finding: %s", err.Error())
 	}
@@ -66,16 +130,17 @@ func FindPath(graph Graph, start *Node, end *Node, heuristic Heuristic) ([]*Node
 		return []*Node{}, err
 	}
 	// Extract a path from end to start in the order from start to end.
-	path, err := extractPath(end, start, true)
+	path, err = extractPath(end, start, true)
 	if err != nil {
 		return []*Node{}, fmt.Errorf("internal error during path extraction: %s", err.Error())
 	}
 
 	// Set the prev pointer back to nil. That way, the input graph can be used again. Also set the
-	// tracked cost back to zero.
-	for node := range graph {
-		node.prev = nil
-		node.trackedCost = defaultCost
+	// tracked cost back to zero. Also set the graph member back to the original graph if that one
+	// was a heaped graph.
+	err = graph.Apply(resetFnGetter(resetGraph))
+	if err != nil {
+		return []*Node{}, fmt.Errorf("internal error during node reset: %s", err.Error())
 	}
 
 	return path, nil
@@ -110,12 +175,14 @@ func ExtractPath(end, start *Node, orgOrder bool) ([]*Node, error) {
 // FindReversePath finds a reverse path from the start node to the end node. Follow the prev member
 // of the end node to traverse the path backwards. To use this function, in the beginning, the open
 // list must contain the start node and the closed list must be empty.
-func FindReversePath(open, closed *Graph, end *Node, heuristic Heuristic) error {
-	for len(*open) != 0 && !closed.Has(end) {
+//
+// This function may panic. If you want panics to be handled internally, use FindPath instead.
+func FindReversePath(open, closed GraphOps, end *Node, heuristic Heuristic) error {
+	for open.Len() != 0 && !closed.Has(end) {
 		// Find the next cheapest node from the open list. This removes it as well as return it.
-		nextCheckNode := open.PopCheapest(heuristic)
+		nextCheckNode := open.PopCheapest()
 		// Add this node to the closed list.
-		closed.Add(nextCheckNode)
+		closed.Push(nextCheckNode, heuristic(nextCheckNode))
 		// Process each of the neighbours.
 		for neigh := range nextCheckNode.connections {
 			// If a neighbour is already on the closed list, skip it. Don't modify it at all.
@@ -124,19 +191,15 @@ func FindReversePath(open, closed *Graph, end *Node, heuristic Heuristic) error 
 			}
 			if open.Has(neigh) {
 				// Update the node in case we found a better path to it.
-				newCost := nextCheckNode.trackedCost + neigh.Cost
-				if newCost < neigh.trackedCost {
-					neigh.prev = nextCheckNode
-					neigh.trackedCost = newCost
-				}
+				open.UpdateIfBetter(neigh, nextCheckNode, nextCheckNode.trackedCost)
 			} else {
 				if neigh.prev != nil {
 					return fmt.Errorf("node %s already has a predecessor", neigh.ToString())
 				}
 				// Add the new, as yet unknown node to the open list.
-				open.Add(neigh)
 				neigh.prev = nextCheckNode
 				neigh.trackedCost = nextCheckNode.trackedCost + neigh.Cost
+				open.Push(neigh, heuristic(neigh))
 			}
 		}
 	}

@@ -24,96 +24,46 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func mockHeuristic(node *Node) int {
-	if node == nil {
-		return 0
-	}
-	return node.Cost + 1
+func TestNewHeapedGraph(t *testing.T) {
+	graph := NewHeapedGraph(100).(*HeapedGraph)
+	assert.Equal(t, 100, cap(graph.Heap))
 }
 
-func TestNewGraph(t *testing.T) {
-	_ = NewGraph(100).(*Graph)
-	// We cannot check the capacity of a map in Go. Thus, this check is somewhat incomplete.
-	// assert.Equal(t, 100, cap(*graph))
-}
-
-func TestGraphAddRemoveSuccess(t *testing.T) {
+func TestHeapedGraphAddRemoveSuccess(t *testing.T) {
 	node, err := NewNode("node", 0, 0, nil)
 	assert.NoError(t, err)
-	graph := Graph{}
-	assert.Equal(t, 0, len(graph))
+	graph := NewHeapedGraph(0).(*HeapedGraph)
+	assert.Equal(t, 0, len(graph.Heap))
 	graph.Add(node)
-	assert.Equal(t, 1, len(graph))
+	assert.Equal(t, 1, len(graph.Heap))
 	graph.Remove(node)
-	assert.Equal(t, 0, len(graph))
+	assert.Equal(t, 0, len(graph.Heap))
 	// Another removal is no problem.
 	graph.Remove(node)
-	assert.Equal(t, 0, len(graph))
+	assert.Equal(t, 0, len(graph.Heap))
 	// Adding a node twice is no problem.
 	graph.Add(node)
-	assert.Equal(t, 1, len(graph))
+	assert.Equal(t, 1, len(graph.Heap))
 	graph.Add(node)
-	assert.Equal(t, 1, len(graph))
+	assert.Equal(t, 1, len(graph.Heap))
 }
 
-func TestGraphHas(t *testing.T) {
+func TestHeapedGraphPushPopCheapestNoExist(t *testing.T) {
 	node, err := NewNode("node", 0, 0, nil)
 	assert.NoError(t, err)
-	graph := Graph{}
-	assert.False(t, graph.Has(node))
-	graph.Add(node)
-	assert.True(t, graph.Has(node))
+	graph := NewHeapedGraph(0).(*HeapedGraph)
+	assert.Equal(t, 0, len(graph.Heap))
+	graph.Push(node, 1)
+	assert.Equal(t, 1, len(graph.Heap))
+	popped := graph.PopCheapest()
+	assert.Equal(t, 0, len(graph.Heap))
+	assert.Equal(t, node, popped)
+	popped = graph.PopCheapest()
+	assert.Nil(t, popped)
 }
 
-func TestGraphApplySuccess(t *testing.T) {
-	node, err := NewNode("node", 0, 0, nil)
-	assert.NoError(t, err)
-
-	graph := Graph{}
-	graph.Add(node)
-
-	mockApplyFn := func(node *Node) error {
-		node.prev = node
-		return nil
-	}
-
-	assert.Nil(t, node.prev)
-	err = graph.Apply(mockApplyFn)
-	assert.NoError(t, err)
-	assert.Equal(t, node, node.prev)
-}
-
-func TestGraphApplyFail(t *testing.T) {
-	node1, err := NewNode("node", 0, 0, nil)
-	assert.NoError(t, err)
-	node2, err := NewNode("node", 0, 0, nil)
-	assert.NoError(t, err)
-
-	graph := Graph{}
-	graph.Add(node1)
-	graph.Add(node2)
-
-	mockApplyFn := func(node *Node) error {
-		node.prev = node
-		return errMock
-	}
-
-	assert.Nil(t, node1.prev)
-	assert.Nil(t, node2.prev)
-	err = graph.Apply(mockApplyFn)
-	assert.Error(t, err)
-	// Ensure the apply fn has not been applied to all nodes but only until an error happened.
-	nilCount := 0
-	for node := range graph {
-		if node.prev == nil {
-			nilCount++
-		}
-	}
-	assert.Equal(t, 1, nilCount)
-}
-
-func TestGraphPopCheapest(t *testing.T) {
-	graph := Graph{}
+func TestHeapedGraphPopCheapest(t *testing.T) {
+	graph := NewHeapedGraph(0)
 	var expectedCheapest *Node
 	for idx, cost := range []int{1, 2, 0, 3} {
 		node, err := NewNode(fmt.Sprintf("node%d", idx), cost, 0, nil)
@@ -128,8 +78,90 @@ func TestGraphPopCheapest(t *testing.T) {
 	assert.Equal(t, expectedCheapest, cheapest)
 }
 
-func TestGraphToString(t *testing.T) {
-	graph := Graph{}
+func TestHeapedGraphHas(t *testing.T) {
+	node, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+	graph := NewHeapedGraph(0)
+	assert.False(t, graph.Has(node))
+	graph.Add(node)
+	assert.True(t, graph.Has(node))
+}
+
+func TestHeapedGraphApplySuccess(t *testing.T) {
+	node, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+
+	graph := NewHeapedGraph(0)
+	graph.Add(node)
+
+	mockApplyFn := func(node *Node) error {
+		node.prev = node
+		return nil
+	}
+
+	assert.Nil(t, node.prev)
+	err = graph.Apply(mockApplyFn)
+	assert.NoError(t, err)
+	assert.Equal(t, node, node.prev)
+}
+
+func TestHeapedGraphApplyFail(t *testing.T) {
+	node1, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+	node2, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+
+	graph := NewHeapedGraph(0).(*HeapedGraph)
+	graph.Add(node1)
+	graph.Add(node2)
+
+	mockApplyFn := func(node *Node) error {
+		node.prev = node
+		return errMock
+	}
+
+	assert.Nil(t, node1.prev)
+	assert.Nil(t, node2.prev)
+	err = graph.Apply(mockApplyFn)
+	assert.Error(t, err)
+	// Ensure the apply fn has not been applied to all nodes but only until an error happened.
+	nilCount := 0
+	for _, elem := range graph.Heap {
+		if elem.Node.prev == nil {
+			nilCount++
+		}
+	}
+	assert.Equal(t, 1, nilCount)
+}
+
+func TestHeapedGraphLen(t *testing.T) {
+	node, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+	graph := NewHeapedGraph(0)
+	assert.Equal(t, 0, graph.Len())
+	graph.Add(node)
+	assert.Equal(t, 1, graph.Len())
+}
+
+func TestHeapedGraphGraphMemberSetPanic(t *testing.T) {
+	node, err := NewNode("node", 0, 0, nil)
+	assert.NoError(t, err)
+	otherGraph := NewHeapedGraph(0)
+	graph := NewHeapedGraph(0)
+
+	assert.Zero(t, graph.Len())
+	node.graph = otherGraph
+	assert.NotNil(t, node.graph)
+	defer func() {
+		err, wasError := recover().(Error)
+		assert.True(t, wasError)
+		assert.Error(t, err)
+	}()
+	graph.Add(node)
+}
+
+func TestHeapedGraphToString(t *testing.T) {
+	graph := NewHeapedGraph(0).(*HeapedGraph)
 	for idx, cost := range []int{1, 2, 0, 3} {
 		node, err := NewNode(fmt.Sprintf("node%d", idx), cost, 0, nil)
 		assert.NoError(t, err)
@@ -143,17 +175,8 @@ func TestGraphToString(t *testing.T) {
 	assert.Equal(t, expectedStr, str)
 }
 
-func TestGraphVal(t *testing.T) {
-	assert.Equal(t, GraphVal(), graphVal)
-	graph := Graph{}
-	node, err := NewNode("node", 0, 0, nil)
-	assert.NoError(t, err)
-	graph.Add(node)
-	assert.Equal(t, GraphVal(), graph[node])
-}
-
-func TestGraphUpdateIfBetterSuccess(t *testing.T) {
-	graph := Graph{}
+func TestHeapedGraphUpdateIfBetterSuccess(t *testing.T) {
+	graph := NewHeapedGraph(0)
 
 	node1, err := NewNode("node", 0, 0, nil)
 	assert.NoError(t, err)
@@ -170,8 +193,8 @@ func TestGraphUpdateIfBetterSuccess(t *testing.T) {
 	assert.Equal(t, node1, node2.prev)
 }
 
-func TestGraphUpdateIfBetterFailure(t *testing.T) {
-	graph := Graph{}
+func TestHeapedGraphUpdateIfBetterFailure(t *testing.T) {
+	graph := NewHeapedGraph(0)
 
 	node, err := NewNode("node", 0, 0, nil)
 	assert.NoError(t, err)

@@ -32,7 +32,7 @@ var errMock = fmt.Errorf("some error")
 
 // Set up test cases for find path. The two functions used by it will return the provided error
 // values.
-func setUpFindPath(errFindReverse, errExtract error, connect bool) func() {
+func setUpFindPath(errFindReverse, errExtract, errCleanUp error, connect bool) func() {
 
 	node1, _ := NewNode("start", 0, 0, nil)
 	node2, _ := NewNode("end", 0, 0, nil)
@@ -57,14 +57,21 @@ func setUpFindPath(errFindReverse, errExtract error, connect bool) func() {
 		return mockPath, errExtract
 	}
 
-	findReversePath = func(_, _ *Graph, _ *Node, _ Heuristic) error {
+	findReversePath = func(_, _ GraphOps, _ *Node, _ Heuristic) error {
 		return errFindReverse
+	}
+
+	resetFnGetter = func(_ GraphOps) func(_ *Node) error {
+		return func(_ *Node) error {
+			return errCleanUp
+		}
 	}
 
 	return func() {
 		// Revert changes.
 		extractPath = ExtractPath
 		findReversePath = FindReversePath
+
 		mockPath = []*Node{}
 		mockGraph = Graph{}
 		mockStart = nil
@@ -73,10 +80,10 @@ func setUpFindPath(errFindReverse, errExtract error, connect bool) func() {
 }
 
 func TestFindPathSuccess(t *testing.T) {
-	tearDown := setUpFindPath(nil, nil, true)
+	tearDown := setUpFindPath(nil, nil, nil, true)
 	defer tearDown()
 
-	path, err := FindPath(mockGraph, mockStart, mockEnd, mockHeuristic)
+	path, err := FindPath(&mockGraph, mockStart, mockEnd, mockHeuristic)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(path))
@@ -85,49 +92,49 @@ func TestFindPathSuccess(t *testing.T) {
 }
 
 func TestFindPathFailurePathExtraction(t *testing.T) {
-	tearDown := setUpFindPath(errMock, nil, true)
+	tearDown := setUpFindPath(errMock, nil, nil, true)
 	defer tearDown()
 
-	_, err := FindPath(mockGraph, mockStart, mockEnd, mockHeuristic)
+	_, err := FindPath(&mockGraph, mockStart, mockEnd, mockHeuristic)
 	assert.Error(t, err)
 }
 
 func TestFindPathFailurePathFinding(t *testing.T) {
-	tearDown := setUpFindPath(nil, errMock, true)
+	tearDown := setUpFindPath(nil, errMock, nil, true)
 	defer tearDown()
 
-	_, err := FindPath(mockGraph, mockStart, mockEnd, mockHeuristic)
+	_, err := FindPath(&mockGraph, mockStart, mockEnd, mockHeuristic)
 	assert.Error(t, err)
 }
 
 func TestFindPathFailureNoEnd(t *testing.T) {
-	tearDown := setUpFindPath(nil, nil, true)
+	tearDown := setUpFindPath(nil, nil, nil, true)
 	defer tearDown()
 
-	_, err := FindPath(mockGraph, mockStart, nil, mockHeuristic)
+	_, err := FindPath(&mockGraph, mockStart, nil, mockHeuristic)
 	assert.Error(t, err)
 }
 
 func TestFindPathFailureNoStart(t *testing.T) {
-	tearDown := setUpFindPath(nil, nil, true)
+	tearDown := setUpFindPath(nil, nil, nil, true)
 	defer tearDown()
 
-	_, err := FindPath(mockGraph, nil, mockEnd, mockHeuristic)
+	_, err := FindPath(&mockGraph, nil, mockEnd, mockHeuristic)
 	assert.Error(t, err)
 }
 
 func TestFindPathFailureAlreadyConnection(t *testing.T) {
-	tearDown := setUpFindPath(nil, nil, true)
+	tearDown := setUpFindPath(nil, nil, nil, true)
 	defer tearDown()
 
 	findReversePath = FindReversePath
 
-	_, err := FindPath(mockGraph, mockStart, mockEnd, mockHeuristic)
+	_, err := FindPath(&mockGraph, mockStart, mockEnd, mockHeuristic)
 	assert.Error(t, err)
 }
 
 func TestFindPathFailureNoConnectionToEnd(t *testing.T) {
-	tearDown := setUpFindPath(nil, nil, false)
+	tearDown := setUpFindPath(nil, nil, nil, false)
 	defer tearDown()
 
 	mockEnd.RemoveConnection(mockStart)
@@ -135,12 +142,12 @@ func TestFindPathFailureNoConnectionToEnd(t *testing.T) {
 
 	findReversePath = FindReversePath
 
-	_, err := FindPath(mockGraph, mockStart, mockEnd, mockHeuristic)
+	_, err := FindPath(&mockGraph, mockStart, mockEnd, mockHeuristic)
 	assert.Error(t, err)
 }
 
 func TestExtractPathSuccessNoReverse(t *testing.T) {
-	tearDown := setUpFindPath(nil, nil, true)
+	tearDown := setUpFindPath(nil, nil, nil, true)
 	defer tearDown()
 
 	path, err := ExtractPath(mockEnd, mockStart, false)
@@ -152,7 +159,7 @@ func TestExtractPathSuccessNoReverse(t *testing.T) {
 }
 
 func TestExtractPathSuccessReverse(t *testing.T) {
-	tearDown := setUpFindPath(nil, nil, true)
+	tearDown := setUpFindPath(nil, nil, nil, true)
 	defer tearDown()
 
 	path, err := ExtractPath(mockEnd, mockStart, true)
@@ -164,7 +171,7 @@ func TestExtractPathSuccessReverse(t *testing.T) {
 }
 
 func TestExtractPathFailureNoConnection(t *testing.T) {
-	tearDown := setUpFindPath(nil, nil, false)
+	tearDown := setUpFindPath(nil, nil, nil, false)
 	defer tearDown()
 
 	_, err := ExtractPath(mockEnd, mockStart, true)
@@ -172,7 +179,7 @@ func TestExtractPathFailureNoConnection(t *testing.T) {
 }
 
 func TestFindPathBetterConnection(t *testing.T) {
-	tearDown := setUpFindPath(nil, nil, true)
+	tearDown := setUpFindPath(nil, nil, nil, true)
 	defer tearDown()
 
 	mockMid, _ := NewNode("mid", 0, 0, nil)
@@ -194,4 +201,61 @@ func TestFindPathBetterConnection(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotEqual(t, orgCost, mockMid.trackedCost)
+}
+
+func TestFindPathFailureNodeReset(t *testing.T) {
+	tearDown := setUpFindPath(nil, nil, errMock, true)
+	defer tearDown()
+
+	_, err := FindPath(&mockGraph, mockStart, mockEnd, mockHeuristic)
+	assert.Error(t, err)
+}
+
+func TestPanicHandlerNoPanic(t *testing.T) {
+	callMe := func() (err error) {
+		defer getPanicHandler(&err)()
+		return nil
+	}
+
+	err := callMe()
+	assert.NoError(t, err)
+}
+
+func TestPanicHandlerPanicInAstarNoOtherError(t *testing.T) {
+	callMe := func() (err error) {
+		defer getPanicHandler(&err)()
+		panic(Error{"astar panic"})
+	}
+
+	err := callMe()
+	assert.Error(t, err)
+	assert.NotEmpty(t, err.Error())
+}
+
+func TestPanicHandlerPanicInAstarOtherError(t *testing.T) {
+	callMe := func() (err error) {
+		defer getPanicHandler(&err)()
+		err = fmt.Errorf("some other error")
+		panic(Error{"astar panic"})
+	}
+
+	err := callMe()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "some other error")
+	assert.NotContains(t, err.Error(), "astar panic")
+}
+
+func TestPanicHandlerPanicOutsideAstar(t *testing.T) {
+	callMe := func() (err error) {
+		defer getPanicHandler(&err)()
+		panic("panic outside astar signified via a different error type")
+	}
+
+	defer func() {
+		errStr, wasError := recover().(string)
+		assert.True(t, wasError)
+		assert.NotEmpty(t, errStr)
+	}()
+
+	_ = callMe()
 }

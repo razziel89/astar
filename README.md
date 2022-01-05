@@ -44,8 +44,9 @@ func main() {
 	// neighbours, 2 in x direction and 2 in y direction. This value
 	// just improves performances during allocation.
 	neighbours := 4
-	// This is the graph we will be using to find the path.
-	graph := astar.Graph{}
+	// This is the graph we will be using to find the path. Provide the
+    // estimated number of nodes for improved performance.
+	graph := astar.NewGraph(gridSize * gridSize)
 	// We remember the node for each position. This makes creating
 	// connections easier.
 	posToNode := map[[2]int]*astar.Node{}
