@@ -52,13 +52,12 @@ jobs:
         filename: coverage_badge_report.out
 
     - name: Check whether the README was actually updated
-      uses: tj-actions/verify-changed-files@v8.1
-      id: verify-changed-files
-      with:
-        files: README.md
+      id: readme_check
+      run: |
+        echo "::set-output name=README_CHANGED::$(git diff-index --quiet HEAD -- README.md; echo $?)"
 
     - name: Cond check one
-      if: steps.changed_files.outputs.files_changed == 'true'
+      if: steps.readme_check.outputs.README_CHANGED == '1'
       run: |
         echo one
 
@@ -69,11 +68,11 @@ jobs:
 
     - name: Output vals
       run: |
-        echo ${{ steps.changed_files.outputs.files_changed }}
+        echo ${{ steps.readme_check.outputs.README_CHANGED }}
         echo ${{ github.ref }}
 
     - name: Push changes if on main branch
-      if: steps.changed_files.outputs.files_changed == 'true' && github.ref == 'refs/heads/main'
+      if: steps.readme_check.outputs.README_CHANGED == '1' && github.ref == 'refs/heads/main'
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ github.token }}
