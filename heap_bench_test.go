@@ -53,7 +53,7 @@ func BenchmarkHeapPush10KNodes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < tenK; j++ {
 			node, _ := NewNode("", tenK-j, 0, nil)
-			goheap.Push(&heap, node)
+			goheap.Push(&heap, HeapElement{node, 0})
 		}
 	}
 }
@@ -64,7 +64,27 @@ func BenchmarkHeapPush100KNodes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < hundredK; j++ {
 			node, _ := NewNode("", hundredK-j, 0, nil)
-			goheap.Push(&heap, node)
+			goheap.Push(&heap, HeapElement{node, 0})
+		}
+	}
+}
+
+func BenchmarkHeapedGraphAdd10KNodes(b *testing.B) {
+	graph := NewHeapedGraph(tenK)
+	for i := 0; i < b.N; i++ {
+		for j := 0; j < tenK; j++ {
+			node, _ := NewNode("", tenK-j, 0, nil)
+			graph.Add(node)
+		}
+	}
+}
+
+func BenchmarkHeapedGraphAdd100KNodes(b *testing.B) {
+	graph := NewHeapedGraph(hundredK)
+	for i := 0; i < b.N; i++ {
+		for j := 0; j < hundredK; j++ {
+			node, _ := NewNode("", hundredK-j, 0, nil)
+			graph.Add(node)
 		}
 	}
 }
@@ -101,7 +121,7 @@ func BenchmarkHeapPop10KNodes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < tenK; j++ {
 			node, _ := NewNode("", 0, 0, nil)
-			goheap.Push(&heap, node)
+			goheap.Push(&heap, HeapElement{node, 0})
 		}
 		for j := 0; j < tenK; j++ {
 			_ = goheap.Pop(&heap)
@@ -115,7 +135,7 @@ func BenchmarkHeapPop100KNodes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < hundredK; j++ {
 			node, _ := NewNode("", 0, 0, nil)
-			goheap.Push(&heap, node)
+			goheap.Push(&heap, HeapElement{node, 0})
 		}
 		for j := 0; j < hundredK; j++ {
 			_ = goheap.Pop(&heap)
@@ -129,7 +149,7 @@ func BenchmarkHeapPopCheapest10KNodes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < tenK; j++ {
 			node, _ := NewNode("", 0, 0, nil)
-			goheap.Push(&heap, node)
+			goheap.Push(&heap, HeapElement{node, 0})
 		}
 		for j := 0; j < tenK; j++ {
 			_ = goheap.Pop(&heap)
@@ -143,10 +163,36 @@ func BenchmarkHeapPopCheapest100KNodes(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < hundredK; j++ {
 			node, _ := NewNode("", 0, 0, nil)
-			goheap.Push(&heap, node)
+			goheap.Push(&heap, HeapElement{node, 0})
 		}
 		for j := 0; j < hundredK; j++ {
 			_ = goheap.Pop(&heap)
+		}
+	}
+}
+
+func BenchmarkHeapedGraphPopCheapest10KNodes(b *testing.B) {
+	graph := NewHeapedGraph(tenK)
+	for i := 0; i < b.N; i++ {
+		for j := 0; j < tenK; j++ {
+			node, _ := NewNode("", tenK-j, 0, nil)
+			graph.Add(node)
+		}
+		for j := 0; j < tenK; j++ {
+			_ = graph.PopCheapest()
+		}
+	}
+}
+
+func BenchmarkHeapedGraphPopCheapest100KNodes(b *testing.B) {
+	graph := NewHeapedGraph(hundredK)
+	for i := 0; i < b.N; i++ {
+		for j := 0; j < hundredK; j++ {
+			node, _ := NewNode("", hundredK-j, 0, nil)
+			graph.Add(node)
+		}
+		for j := 0; j < hundredK; j++ {
+			_ = graph.PopCheapest()
 		}
 	}
 }
