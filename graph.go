@@ -41,6 +41,10 @@ type GraphOps interface {
 	PopCheapest() *Node
 	// Apply applies a function to all nodes in the graph. That function may error out.
 	Apply(func(*Node) error) error
+	// UpdateIfBetter updates a node's best connection if that is cheaper than any previously found
+	// one. It takes the node to update, the new possible best predecessor and the cost for reaching
+	// that predecessor.
+	UpdateIfBetter(*Node, *Node, int)
 }
 
 // Graph is a collection of nodes. Note that there are no guarantees for the nodes to be connected.
@@ -105,7 +109,7 @@ func (g *Graph) PopCheapest() *Node {
 	return result
 }
 
-// Apply apples a function to all nodes in the graph.
+// Apply applies a function to all nodes in the graph.
 func (g *Graph) Apply(fn func(*Node) error) error {
 	for node := range *g {
 		err := fn(node)
@@ -114,6 +118,20 @@ func (g *Graph) Apply(fn func(*Node) error) error {
 		}
 	}
 	return nil
+}
+
+// UpdateIfBetter updates a node's best connection if that is cheaper than any previously found one.
+// It takes the node to update, the new possible best predecessor and the cost for reaching that
+// predecessor.
+func (g *Graph) UpdateIfBetter(node, prev *Node, newCost int) {
+	if !g.Has(node) {
+		panic(fmt.Errorf("cannot update node outside this graph"))
+	}
+	newCost += node.Cost
+	if newCost < node.trackedCost {
+		node.prev = prev
+		node.trackedCost = newCost
+	}
 }
 
 // ToString provides a string representation of the graph. The nodes are sorted according to their

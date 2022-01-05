@@ -48,7 +48,8 @@ type Node struct {
 	// Member prev tracks the previous node on the minimal cost connection.
 	prev *Node
 	// Member graph tracks which graph this node is in. This will be set appripriately by the
-	// algorithm when adding and removing nodes to or from a heaped graph.
+	// algorithm when adding and removing nodes to or from a heaped graph. This member is used only
+	// by the HeapedGraph.
 	graph GraphOps
 }
 
@@ -104,4 +105,9 @@ func (n *Node) ToString() string {
 		"{id: %s, cost: %d, con: ['%s']}",
 		n.ID, n.Cost, conString,
 	)
+}
+
+// String obtains a string representation suitable for use with fmt's Print functions.
+func (n Node) String() string {
+	return n.ToString()
 }

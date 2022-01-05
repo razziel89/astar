@@ -33,7 +33,7 @@ type HeapedGraph struct {
 }
 
 // NewHeapedGraph obtains a new heaped graph. Specify the estimated number of nodes as argument to
-// boost performance.
+// boost performance. See HeapedGraph for details.
 func NewHeapedGraph(estimatedSize int) GraphOps {
 	heap := make(Heap, 0, estimatedSize)
 	self := &HeapedGraph{Heap: heap}
@@ -106,6 +106,28 @@ func (g *HeapedGraph) Apply(fn func(*Node) error) error {
 		}
 	}
 	return nil
+}
+
+// UpdateIfBetter updates a node's best connection if that is cheaper than any previously found one.
+// It takes the node to update, the new possible best predecessor and the cost for reaching that
+// predecessor.
+func (g *HeapedGraph) UpdateIfBetter(node, prev *Node, newCost int) {
+	if !g.Has(node) {
+		panic(fmt.Errorf("cannot update node outside this graph"))
+	}
+	newCost += node.Cost
+	if newCost < node.trackedCost {
+		node.prev = prev
+		node.trackedCost = newCost
+		// The node was updated, we need to fix the order in the heap. To do so, we need to find the
+		// node first and then call goheap.Fix on it. This can be very expensive.
+		for idx, elem := range g.Heap {
+			if elem.Node == node {
+				goheap.Fix(&g.Heap, idx)
+				break
+			}
+		}
+	}
 }
 
 // ToString provides a string representation of the graph. The nodes are sorted according to their

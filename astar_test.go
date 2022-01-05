@@ -61,8 +61,10 @@ func setUpFindPath(errFindReverse, errExtract, errCleanUp error, connect bool) f
 		return errFindReverse
 	}
 
-	resetFn = func(_ *Node) error {
-		return errCleanUp
+	resetFnGetter = func(_ GraphOps) func(_ *Node) error {
+		return func(_ *Node) error {
+			return errCleanUp
+		}
 	}
 
 	return func() {

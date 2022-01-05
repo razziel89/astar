@@ -40,7 +40,9 @@ func (h *Heap) Len() int {
 // Less determines whether one value is smaller than another one. This is needed for Go's heap
 // interface.
 func (h *Heap) Less(i, j int) bool {
-	return (*h)[i].Node.trackedCost < (*h)[j].Node.trackedCost
+	iElem := (*h)[i]
+	jElem := (*h)[j]
+	return iElem.Node.trackedCost+iElem.Estimate < jElem.Node.trackedCost+jElem.Estimate
 }
 
 // Swap swaps two values in the heap. This is needed for Go's heap interface.

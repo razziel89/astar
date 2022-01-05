@@ -380,19 +380,31 @@ func TestOneWayConnection(t *testing.T) {
 			init.AddConnection(con)
 		}
 	}
-	nodeMap, err := nodeListToGraph(nodes, "default")
-	assert.NoError(t, err)
-	path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
-	assert.NoError(t, err)
-	expectedPath := []*Node{nodes[0], nodes[3], nodes[4], nodes[5], nodes[8]}
-	assertPathsEqual(t, expectedPath, path)
+	for _, graphType := range []string{"default", "heaped"} {
+		t.Logf("Running for %s", graphType)
+		nodeMap, err := nodeListToGraph(nodes, graphType)
+		assert.NoError(t, err)
+		path, err := FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+		assert.NoError(t, err)
+		expectedPath := []*Node{nodes[0], nodes[3], nodes[4], nodes[5], nodes[8]}
+		assertPathsEqual(t, expectedPath, path)
 
-	// As soon as the one additional connection is added, the better path is found. This ensures
-	// that the connection from nodes[8] to nodes[7] added above is not taken, since it is only one
-	// way.
-	nodes[7].AddConnection(nodes[8])
-	path, err = FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
-	assert.NoError(t, err)
-	expectedPath = []*Node{nodes[0], nodes[3], nodes[4], nodes[7], nodes[8]}
-	assertPathsEqual(t, expectedPath, path)
+		t.Logf("Logging for %s", graphType)
+		for _, node := range nodes {
+			t.Log(node)
+		}
+
+		t.Logf("Running updated for %s", graphType)
+		// As soon as the one additional connection is added, the better path is found. This ensures
+		// that the connection from nodes[8] to nodes[7] added above is not taken, since it is only
+		// one way.
+		nodes[7].AddConnection(nodes[8])
+		path, err = FindPath(nodeMap, nodes[0], nodes[len(nodes)-1], heuristic.Heuristic(0))
+		assert.NoError(t, err)
+		expectedPath = []*Node{nodes[0], nodes[3], nodes[4], nodes[7], nodes[8]}
+		assertPathsEqual(t, expectedPath, path)
+
+		// Remove the connection again to make tests independent.
+		nodes[7].RemoveConnection(nodes[8])
+	}
 }
