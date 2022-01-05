@@ -153,7 +153,7 @@ func TestHeapedGraphGraphMemberSetPanic(t *testing.T) {
 	node.graph = otherGraph
 	assert.NotNil(t, node.graph)
 	defer func() {
-		err, wasError := recover().(error)
+		err, wasError := recover().(Error)
 		assert.True(t, wasError)
 		assert.Error(t, err)
 	}()
@@ -200,7 +200,7 @@ func TestHeapedGraphUpdateIfBetterFailure(t *testing.T) {
 	assert.NoError(t, err)
 
 	defer func() {
-		err, wasError := recover().(error)
+		err, wasError := recover().(Error)
 		assert.True(t, wasError)
 		assert.Error(t, err)
 	}()

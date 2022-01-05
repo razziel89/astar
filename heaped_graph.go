@@ -56,7 +56,7 @@ func (g *HeapedGraph) Has(node *Node) bool {
 func (g *HeapedGraph) Add(node *Node) {
 	if !g.Has(node) {
 		if node.graph != nil {
-			panic(fmt.Errorf("different graph already set"))
+			panic(Error{"different graph already set"})
 		}
 		elem := HeapElement{Node: node, Estimate: graphVal}
 		goheap.Push(&g.Heap, elem)
@@ -113,7 +113,7 @@ func (g *HeapedGraph) Apply(fn func(*Node) error) error {
 // predecessor.
 func (g *HeapedGraph) UpdateIfBetter(node, prev *Node, newCost int) {
 	if !g.Has(node) {
-		panic(fmt.Errorf("cannot update node outside this graph"))
+		panic(Error{"cannot update node outside this graph"})
 	}
 	newCost += node.Cost
 	if newCost < node.trackedCost {

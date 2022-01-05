@@ -208,3 +208,52 @@ func TestFindPathFailureNodeReset(t *testing.T) {
 	_, err := FindPath(&mockGraph, mockStart, mockEnd, mockHeuristic)
 	assert.Error(t, err)
 }
+
+func TestPanicHandlerNoPanic(t *testing.T) {
+	callMe := func() (err error) {
+		defer getPanicHandler(&err)()
+		return nil
+	}
+
+	err := callMe()
+	assert.NoError(t, err)
+}
+
+func TestPanicHandlerPanicInAstarNoOtherError(t *testing.T) {
+	callMe := func() (err error) {
+		defer getPanicHandler(&err)()
+		panic(Error{"astar panic"})
+	}
+
+	err := callMe()
+	assert.Error(t, err)
+	assert.NotEmpty(t, err.Error())
+}
+
+func TestPanicHandlerPanicInAstarOtherError(t *testing.T) {
+	callMe := func() (err error) {
+		defer getPanicHandler(&err)()
+		err = fmt.Errorf("some other error")
+		panic(Error{"astar panic"})
+	}
+
+	err := callMe()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "some other error")
+	assert.NotContains(t, err.Error(), "astar panic")
+}
+
+func TestPanicHandlerPanicOutsideAstar(t *testing.T) {
+	callMe := func() (err error) {
+		defer getPanicHandler(&err)()
+		panic("panic outside astar signified via a different error type")
+	}
+
+	defer func() {
+		errStr, wasError := recover().(string)
+		assert.True(t, wasError)
+		assert.NotEmpty(t, errStr)
+	}()
+
+	_ = callMe()
+}

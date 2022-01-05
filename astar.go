@@ -30,6 +30,16 @@ var (
 	resetFnGetter   = getNodeResetFn
 )
 
+// Error is the error type that can be returned by the astar package. It is used to determine
+// which errors occurred inside the package and which ones occurred outside of it.
+type Error struct {
+	message string
+}
+
+func (e Error) Error() string {
+	return e.message
+}
+
 func getNodeResetFn(resetGraph GraphOps) func(*Node) error {
 	return func(node *Node) error {
 		node.prev = nil
@@ -43,7 +53,7 @@ func getPanicHandler(err *error) func() {
 	return func() {
 		if recovered := recover(); recovered != nil {
 			// Something panicked. Determine whether we did. If not, propagate the panic.
-			if panickedErr, wasError := recovered.(error); wasError {
+			if panickedErr, wasError := recovered.(Error); wasError {
 				// We panicked. Propagate the error, but don't overwrite existing errors.
 				if err != nil && *err == nil {
 					*err = panickedErr

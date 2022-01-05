@@ -127,7 +127,7 @@ func (g *Graph) Apply(fn func(*Node) error) error {
 // predecessor.
 func (g *Graph) UpdateIfBetter(node, prev *Node, newCost int) {
 	if !g.Has(node) {
-		panic(fmt.Errorf("cannot update node outside this graph"))
+		panic(Error{"cannot update node outside this graph"})
 	}
 	newCost += node.Cost
 	if newCost < node.trackedCost {

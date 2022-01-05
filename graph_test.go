@@ -177,7 +177,7 @@ func TestGraphUpdateIfBetterFailure(t *testing.T) {
 	assert.NoError(t, err)
 
 	defer func() {
-		err, wasError := recover().(error)
+		err, wasError := recover().(Error)
 		assert.True(t, wasError)
 		assert.Error(t, err)
 	}()
