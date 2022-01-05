@@ -1,4 +1,5 @@
 # General
+![Coverage](https://img.shields.io/badge/Coverage-100.0%25-brightgreen)
 
 This is an implementation of the `A*` path finding algoritm written in plain
 Golang.
