@@ -37,4 +37,6 @@ jobs:
         skip-go-installation: true
 
     - name: Test project
-      run: make test
+      run: |
+        make test
+        make readme_test
