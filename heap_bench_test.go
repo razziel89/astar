@@ -28,7 +28,7 @@ const (
 )
 
 func BenchmarkGraphAdd10KNodes(b *testing.B) {
-	graph := Graph{}
+	graph := NewGraph(tenK)
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < tenK; j++ {
 			node, _ := NewNode("", tenK-j, 0, nil)
@@ -38,7 +38,7 @@ func BenchmarkGraphAdd10KNodes(b *testing.B) {
 }
 
 func BenchmarkGraphAdd100KNodes(b *testing.B) {
-	graph := Graph{}
+	graph := NewGraph(hundredK)
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < hundredK; j++ {
 			node, _ := NewNode("", hundredK-j, 0, nil)
@@ -90,7 +90,7 @@ func BenchmarkHeapedGraphAdd100KNodes(b *testing.B) {
 }
 
 func BenchmarkGraphPopCheapest10KNodes(b *testing.B) {
-	graph := Graph{}
+	graph := NewGraph(tenK)
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < tenK; j++ {
 			node, _ := NewNode("", tenK-j, 0, nil)
@@ -103,7 +103,7 @@ func BenchmarkGraphPopCheapest10KNodes(b *testing.B) {
 }
 
 func BenchmarkGraphPopCheapest100KNodes(b *testing.B) {
-	graph := Graph{}
+	graph := NewGraph(hundredK)
 	for i := 0; i < b.N; i++ {
 		for j := 0; j < hundredK; j++ {
 			node, _ := NewNode("", hundredK-j, 0, nil)
