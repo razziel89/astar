@@ -59,9 +59,10 @@ func main() {
     // and possibly an error. We created a heaped graph to get
     // the best performance. The alternative would be a "default"
     // graph, which is a simpler data structure but has worse
-    // performance.
+    // performance. The value `0` here is the default cost for
+    // all nodes in the graph.
     graph, posToNode, err := astar.CreateRegular2DGrid(
-        gridSize, connections, endPos, "heaped",
+        gridSize, connections, "heaped", 0,
     )
     // Error handling.
     if err != nil {
@@ -78,8 +79,8 @@ func main() {
     )
 
     // Each node has a default cost of 0 assigned until now. To
-    // create a useful example, we need to set some non-zero
-    // costs on some nodes.
+    // create a useful example, we need to set some varying costs
+    // on some nodes.
     for x := 0; x < gridSize[0]; x++ {
         for y := 0; y < gridSize[1]; y++ {
 
