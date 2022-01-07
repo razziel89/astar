@@ -50,7 +50,7 @@ func dist2D(pos1, pos2 [2]int) int {
 //	  the costs.
 // 3. An error value in case there were problems.
 func CreateRegular2DGrid(
-	size [2]int, connections [][2]int, dest [2]int, graphType string,
+	size [2]int, connections [][2]int, graphType string, defaultCost int,
 ) (GraphOps, map[[2]int]*Node, error) {
 
 	// These values just improve performances during allocation.
@@ -77,7 +77,7 @@ func CreateRegular2DGrid(
 			nodeName := fmt.Sprintf("x:%d,y:%d", x, y)
 			// Create the node with empty payload. The payload is for the user to use. Don't provide
 			// a cost for now. The user needs to set that later.
-			node, err := NewNode(nodeName, 0, neighbours, nil)
+			node, err := NewNode(nodeName, defaultCost, neighbours, nil)
 			if err != nil {
 				return nil, nil, err
 			}
