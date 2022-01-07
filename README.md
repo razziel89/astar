@@ -35,105 +35,74 @@ import (
 
 func main() {
     // 100 nodes means a 10x10 grid.
-    gridSize := 10
-    endX, endY := 9, 9
+    gridSize := [2]int{10, 10}
+    // We want to go to the bottom right corner...
+    endPos := [2]int{9, 9}
+    // ... from the top left corner.
+    startPos := [2]int{0, 0}
     // We disallow diagonal movements. Thus, each node has 4
-    // neighbours, 2 in x direction and 2 in y direction. This value
-    // just improves performances during allocation.
-    neighbours := 4
-    // This is the graph we will be using to find the path. Provide the
-    // estimated number of nodes for improved performance.
-    graph := astar.NewHeapedGraph(gridSize * gridSize)
-    // We remember the node for each position. This makes creating
-    // connections easier.
-    posToNode := map[[2]int]*astar.Node{}
-    // We also need to create a heuristic that estimates the distance
-    // to the end node. We use a simple one based on the line of sight
-    // distance.
-    heuristic := astar.ConstantHeuristic{}
-
-    // Create the actual nodes, connections will be created later.
-    for x := 0; x < gridSize; x++ {
-        for y := 0; y < gridSize; y++ {
-
-            // Create a name for the node, the algorithm does not use
-            // this value.
-            nodeName := fmt.Sprintf("x:%d,y:%d", x, y)
-            // Note that we decrease the cost quadratically towards
-            // x==5 and increase it for y towards higher values. That
-            // way, the path through the middle is preferred.
-            nodeCost := (x-5)*(x-5) + 2*y
-            // Nodes can take an arbitrary payload. You can attach the
-            // position, for example. We don't use any payload for
-            // this example. The default for an empty interface is
-            // nil.
-            var payload interface{}
-            // Create the node.
-            node, err := astar.NewNode(
-                nodeName, nodeCost, neighbours, payload,
-            )
-            // Error handling. Costs must always be positive, for
-            // example.
-            if err != nil {
-                log.Fatal(err.Error())
-            }
-            // Remember the node for this position.
-            posToNode[[2]int{x, y}] = node
-            // Add the node to the graph!
-            graph.Add(node)
-            // Add the line of sight distance in Manhattan metric to
-            // the end node to the heuristic. Since we disallow
-            // diagonal connections, this is realistic.
-            err = heuristic.AddNode(node, (endX-x)+(endY-y))
-            // Error handling. Estimates must always be positive, for
-            // example. Furthermore, you cannot overwrite a node's
-            // estimate after adding it.
-            if err != nil {
-                log.Fatal(err.Error())
-            }
-
-        }
+    // neighbours, 2 in x direction and 2 in y direction.
+    // Create a data structure that specifies these connections.
+    // The algorithm will automatically only connect to existing
+    // nodes and ignore displacements that would take it beyond
+    // the specified grid.
+    connections := [][2]int{
+        [2]int{-1, 0},
+        [2]int{0, -1},
+        [2]int{1, 0},
+        [2]int{0, 1},
     }
 
-    // Create connections.
-    for x := 0; x < gridSize; x++ {
-        for y := 0; y < gridSize; y++ {
+    // Create the regular 2D grid including all connections as
+    // specified by `connections` above. We receive a graph
+    // suitable for path finding, a map from positions to nodes,
+    // and possibly an error. We created a heaped graph to get
+    // the best performance. The alternative would be a "default"
+    // graph, which is a simpler data structure but has worse
+    // performance. The value `0` here is the default cost for
+    // all nodes in the graph.
+    graph, posToNode, err := astar.CreateRegular2DGrid(
+        gridSize, connections, "heaped", 0,
+    )
+    // Error handling.
+    if err != nil {
+        log.Fatal(err.Error())
+    }
 
-            // Add all connections for this node.
-            // Extract the node first.
+    // Create a default, constant heuristic that estimates the
+    // remaining cost as the line-of-sight distance between each
+    // node and the desired destination. The value 0 is simply
+    // the default estimate for unknown nodes, which is not
+    // important here.
+    heuristic, err := astar.CreateConstantHeuristic2D(
+        posToNode, endPos, 0,
+    )
+
+    // Each node has a default cost of 0 assigned until now. To
+    // create a useful example, we need to set some varying costs
+    // on some nodes.
+    for x := 0; x < gridSize[0]; x++ {
+        for y := 0; y < gridSize[1]; y++ {
+
+            // Extract the node.
             node := posToNode[[2]int{x, y}]
-            // Then, iterate over all neighbours in x and y
-            // directions. There are four different displacements
-            // here.
-            neighDisp := [][2]int{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}
-            for _, disp := range neighDisp {
-                neighPos := [2]int{x + disp[0], y + disp[1]}
-                // Only add connections if the neighbour actually
-                // exists!
-                if neigh, exists := posToNode[neighPos]; exists {
-                    // Add pairwise connections. Adding a connection
-                    // multiple times is no problem. All but the first
-                    // calls are no-ops. You can also call
-                    // `node.AddPairwiseConnection(neigh)` directly,
-                    // which will add connections both ways.
-                    node.AddConnection(neigh)
-                    neigh.AddConnection(node)
-                }
-            }
+            // Note that we decrease the cost quadratically
+            // towards x==5 and increase it for y towards higher
+            // values. That way, the path through the middle is
+            // preferred.
+            node.Cost = (x-5)*(x-5) + 2*y
 
         }
     }
 
     // Extract start and end nodes.
-    start := posToNode[[2]int{0, 0}]
-    end := posToNode[[2]int{endX, endY}]
+    start := posToNode[startPos]
+    end := posToNode[endPos]
 
-    // Find the path! As you can see, creating the data structures is
-    // the biggest headache. But this algorithm permits arbitrary
-    // connections, even one-directional ones.
-    path, err := astar.FindPath(
-        graph, start, end, heuristic.Heuristic(0),
-    )
+    // Find the path! As you can see, creating the data
+    // structures is the biggest headache. But this algorithm
+    // permits arbitrary connections, even one-directional ones.
+    path, err := astar.FindPath(graph, start, end, heuristic)
     // Error handling.
     if err != nil {
         log.Fatal(err.Error())
