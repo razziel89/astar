@@ -1,3 +1,9 @@
+# Note
+
+This library is no longer actively developed or maintained.
+It was a nice exercise but I do not have an actual use case for it.
+Thus, this repository has been archived.
+
 # General
 ![Coverage](https://img.shields.io/badge/Coverage-100.0%25-brightgreen)
 
